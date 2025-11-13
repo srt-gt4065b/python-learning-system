@@ -1,912 +1,904 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Python 인터랙티브 학습 시스템 🐍</title>
-<style>
-* {
-margin: 0;
-padding: 0;
-box-sizing: border-box;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python 인터랙티브 학습 시스템 🐍</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-```
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        padding: 20px;
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-    .header {
-        background: white;
-        padding: 30px;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        margin-bottom: 30px;
-        text-align: center;
-    }
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
 
-    .header h1 {
-        color: #667eea;
-        font-size: 2.5em;
-        margin-bottom: 10px;
-    }
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
 
-    .header p {
-        color: #666;
-        font-size: 1.2em;
-    }
+        .header p {
+            color: #666;
+            font-size: 1.2em;
+        }
 
-    .firebase-badge {
-        display: inline-block;
-        background: linear-gradient(135deg, #FFA000 0%, #FF6F00 100%);
-        color: white;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 0.9em;
-        margin-top: 10px;
-        animation: pulse 2s infinite;
-    }
+        .firebase-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #FFA000 0%, #FF6F00 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+            animation: pulse 2s infinite;
+        }
 
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-    }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
 
-    .stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin-bottom: 30px;
-    }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
 
-    .stat-card {
-        background: white;
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        text-align: center;
-        transition: transform 0.3s;
-    }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
 
-    .stat-card:hover {
-        transform: translateY(-5px);
-    }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
 
-    .stat-number {
-        font-size: 2.5em;
-        font-weight: bold;
-        color: #667eea;
-        display: block;
-    }
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
 
-    .stat-label {
-        color: #666;
-        font-size: 1em;
-        margin-top: 5px;
-    }
+        .stat-label {
+            color: #666;
+            font-size: 1em;
+            margin-top: 5px;
+        }
 
-    .main-content {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 30px;
-    }
-
-    @media (max-width: 968px) {
         .main-content {
-            grid-template-columns: 1fr;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
         }
-    }
 
-    .panel {
-        background: white;
-        padding: 25px;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
-
-    .panel h2 {
-        color: #667eea;
-        margin-bottom: 20px;
-        font-size: 1.8em;
-    }
-
-    .topic-buttons {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-
-    .topic-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 15px 20px;
-        border-radius: 10px;
-        font-size: 1em;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .topic-btn:hover {
-        transform: scale(1.05);
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    .topic-btn.active {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-
-    .question-card {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 15px;
-        margin-bottom: 20px;
-        border-left: 5px solid #667eea;
-    }
-
-    .question-text {
-        font-size: 1.2em;
-        color: #333;
-        margin-bottom: 15px;
-        font-weight: 500;
-    }
-
-    .code-editor {
-        background: #282c34;
-        color: #abb2bf;
-        padding: 20px;
-        border-radius: 10px;
-        font-family: 'Courier New', monospace;
-        font-size: 14px;
-        min-height: 150px;
-        margin-bottom: 15px;
-        overflow-x: auto;
-        white-space: pre;
-        line-height: 1.5;
-    }
-
-    textarea.code-input {
-        width: 100%;
-        min-height: 200px;
-        background: #282c34;
-        color: #abb2bf;
-        border: 2px solid #667eea;
-        border-radius: 10px;
-        padding: 15px;
-        font-family: 'Courier New', monospace;
-        font-size: 14px;
-        resize: vertical;
-        line-height: 1.5;
-    }
-
-    .output-box {
-        background: #1e1e1e;
-        color: #4ec9b0;
-        padding: 15px;
-        border-radius: 10px;
-        font-family: 'Courier New', monospace;
-        font-size: 14px;
-        min-height: 100px;
-        margin-top: 15px;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        line-height: 1.5;
-    }
-
-    .button-group {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-top: 15px;
-    }
-
-    .btn {
-        padding: 12px 30px;
-        border: none;
-        border-radius: 10px;
-        font-size: 1em;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-    }
-
-    .btn-success {
-        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-        color: white;
-    }
-
-    .btn-warning {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        color: white;
-    }
-
-    .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    }
-
-    .hint-box {
-        background: #fff3cd;
-        border: 2px solid #ffc107;
-        padding: 15px;
-        border-radius: 10px;
-        margin-top: 15px;
-        display: none;
-    }
-
-    .hint-box.show {
-        display: block;
-    }
-
-    .feedback {
-        padding: 15px;
-        border-radius: 10px;
-        margin-top: 15px;
-        font-weight: bold;
-        display: none;
-        animation: slideIn 0.3s;
-    }
-
-    @keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
+        @media (max-width: 968px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
         }
-        to {
-            opacity: 1;
-            transform: translateY(0);
+
+        .panel {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
-    }
 
-    .feedback.show {
-        display: block;
-    }
+        .panel h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
 
-    .feedback.success {
-        background: #d4edda;
-        color: #155724;
-        border: 2px solid #28a745;
-    }
+        .topic-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
 
-    .feedback.error {
-        background: #f8d7da;
-        color: #721c24;
-        border: 2px solid #dc3545;
-    }
+        .topic-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
 
-    .progress-bar {
-        width: 100%;
-        height: 30px;
-        background: #e9ecef;
-        border-radius: 15px;
-        overflow: hidden;
-        margin-bottom: 20px;
-    }
+        .topic-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
 
-    .progress-fill {
-        height: 100%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        transition: width 0.5s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-    }
+        .topic-btn.active {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
 
-    .achievement-popup {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) scale(0);
-        background: white;
-        padding: 40px;
-        border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        text-align: center;
-        z-index: 1000;
-        transition: transform 0.3s;
-    }
+        .question-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+        }
 
-    .achievement-popup.show {
-        transform: translate(-50%, -50%) scale(1);
-    }
+        .question-text {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
 
-    .achievement-icon {
-        font-size: 5em;
-        margin-bottom: 20px;
-    }
+        .code-editor {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            min-height: 150px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.5;
+        }
 
-    .overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        display: none;
-        z-index: 999;
-    }
+        textarea.code-input {
+            width: 100%;
+            min-height: 200px;
+            background: #282c34;
+            color: #abb2bf;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            line-height: 1.5;
+        }
 
-    .overlay.show {
-        display: block;
-    }
+        .output-box {
+            background: #1e1e1e;
+            color: #4ec9b0;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            min-height: 100px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
 
-    .difficulty-badge {
-        display: inline-block;
-        padding: 5px 10px;
-        border-radius: 5px;
-        font-size: 0.9em;
-        margin-left: 10px;
-    }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
 
-    .difficulty-easy {
-        background: #d4edda;
-        color: #155724;
-    }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
 
-    .difficulty-medium {
-        background: #fff3cd;
-        color: #856404;
-    }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
 
-    .difficulty-hard {
-        background: #f8d7da;
-        color: #721c24;
-    }
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
 
-    .student-info {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 15px;
-        margin-bottom: 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
 
-    .student-name {
-        font-size: 1.5em;
-        font-weight: bold;
-    }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
 
-    .student-id {
-        font-size: 0.9em;
-        opacity: 0.9;
-    }
+        .hint-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
 
-    .name-input-modal {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: white;
-        padding: 40px;
-        border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        z-index: 1001;
-        text-align: center;
-        display: none;
-    }
+        .hint-box.show {
+            display: block;
+        }
 
-    .name-input-modal.show {
-        display: block;
-    }
+        .feedback {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-weight: bold;
+            display: none;
+            animation: slideIn 0.3s;
+        }
 
-    .name-input-modal input {
-        width: 100%;
-        padding: 15px;
-        font-size: 1.2em;
-        border: 2px solid #667eea;
-        border-radius: 10px;
-        margin: 20px 0;
-    }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-    .sync-status {
-        display: inline-block;
-        padding: 5px 10px;
-        border-radius: 15px;
-        font-size: 0.8em;
-        margin-left: 10px;
-    }
+        .feedback.show {
+            display: block;
+        }
 
-    .sync-status.synced {
-        background: #d4edda;
-        color: #155724;
-    }
+        .feedback.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
 
-    .sync-status.syncing {
-        background: #fff3cd;
-        color: #856404;
-    }
-</style>
+        .feedback.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
 
-```
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
 
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .achievement-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 1000;
+            transition: transform 0.3s;
+        }
+
+        .achievement-popup.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .achievement-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 999;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        .difficulty-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+
+        .difficulty-easy {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .difficulty-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .difficulty-hard {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .student-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .student-name {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .student-id {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .name-input-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            z-index: 1001;
+            text-align: center;
+            display: none;
+        }
+
+        .name-input-modal.show {
+            display: block;
+        }
+
+        .name-input-modal input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .sync-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+
+        .sync-status.synced {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .sync-status.syncing {
+            background: #fff3cd;
+            color: #856404;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-<div class="header">
-<h1>🐍 Python 인터랙티브 학습 시스템</h1>
-<p>코드를 작성하고, 실행하고, 마스터하세요!</p>
-<span class="firebase-badge">🔥 Firebase 실시간 동기화</span>
-</div>
-
-```
-    <div class="student-info">
-        <div>
-            <div class="student-name" id="student-name">환영합니다!</div>
-            <div class="student-id" id="student-id">학번: 미등록</div>
+    <div class="container">
+        <div class="header">
+            <h1>🐍 Python 인터랙티브 학습 시스템</h1>
+            <p>코드를 작성하고, 실행하고, 마스터하세요!</p>
+            <span class="firebase-badge">🔥 Firebase 실시간 동기화</span>
         </div>
-        <div>
-            <span class="sync-status synced" id="sync-status">✓ 동기화됨</span>
-            <button class="btn btn-warning" onclick="changeStudentInfo()" style="margin-left: 10px;">👤 정보 수정</button>
+
+        <div class="student-info">
+            <div>
+                <div class="student-name" id="student-name">환영합니다!</div>
+                <div class="student-id" id="student-id">학번: 미등록</div>
+            </div>
+            <div>
+                <span class="sync-status synced" id="sync-status">✓ 동기화됨</span>
+                <button class="btn btn-warning" onclick="changeStudentInfo()" style="margin-left: 10px;">👤 정보 수정</button>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <span class="stat-number" id="score">0</span>
+                <span class="stat-label">점수</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="solved">0</span>
+                <span class="stat-label">해결한 문제</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="streak">0</span>
+                <span class="stat-label">연속 정답</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="level">1</span>
+                <span class="stat-label">레벨</span>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress" style="width: 0%">0%</div>
+        </div>
+
+        <div class="main-content">
+            <div class="panel">
+                <h2>📚 학습 주제 선택</h2>
+                <div class="topic-buttons">
+                    <button class="topic-btn active" onclick="loadTopic('datatypes')">자료형</button>
+                    <button class="topic-btn" onclick="loadTopic('numpy')">Numpy</button>
+                    <button class="topic-btn" onclick="loadTopic('pandas')">Pandas</button>
+                    <button class="topic-btn" onclick="loadTopic('data_loading')">📂 데이터 불러오기</button>
+                    <button class="topic-btn" onclick="loadTopic('operations')">연산</button>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-text" id="question">문제를 로딩 중...</div>
+                    <div class="code-editor" id="example-code"></div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-warning" onclick="showHint()">💡 힌트</button>
+                    <button class="btn btn-success" onclick="nextQuestion()">다음 문제 ➡️</button>
+                </div>
+
+                <div class="hint-box" id="hint"></div>
+            </div>
+
+            <div class="panel">
+                <h2>💻 코드 작성 공간</h2>
+                <textarea class="code-input" id="code-input" placeholder="여기에 Python 코드를 작성하세요..."></textarea>
+                
+                <div class="button-group">
+                    <button class="btn btn-success" onclick="checkAnswer()">✅ 정답 확인</button>
+                    <button class="btn btn-primary" onclick="clearCode()">🗑️ 코드 지우기</button>
+                </div>
+
+                <div class="feedback" id="feedback"></div>
+
+                <h3 style="margin-top: 20px; color: #667eea;">💡 예상 출력:</h3>
+                <div class="output-box" id="expected-output">정답을 확인하면 예상 출력이 표시됩니다...</div>
+            </div>
         </div>
     </div>
 
-    <div class="stats">
-        <div class="stat-card">
-            <span class="stat-number" id="score">0</span>
-            <span class="stat-label">점수</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-number" id="solved">0</span>
-            <span class="stat-label">해결한 문제</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-number" id="streak">0</span>
-            <span class="stat-label">연속 정답</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-number" id="level">1</span>
-            <span class="stat-label">레벨</span>
-        </div>
+    <!-- 학생 정보 입력 모달 -->
+    <div class="overlay" id="name-overlay"></div>
+    <div class="name-input-modal" id="name-modal">
+        <h2>👋 환영합니다!</h2>
+        <p>학습을 시작하기 전에 정보를 입력해주세요.</p>
+        <input type="text" id="name-input" placeholder="이름을 입력하세요 (예: 김철수)">
+        <input type="text" id="id-input" placeholder="학번을 입력하세요 (예: 20241234)">
+        <button class="btn btn-primary" onclick="saveStudentInfo()">시작하기</button>
     </div>
 
-    <div class="progress-bar">
-        <div class="progress-fill" id="progress" style="width: 0%">0%</div>
+    <div class="overlay" id="overlay" onclick="closeAchievement()"></div>
+    <div class="achievement-popup" id="achievement">
+        <div class="achievement-icon">🏆</div>
+        <h2 id="achievement-text">축하합니다!</h2>
+        <p id="achievement-desc"></p>
+        <button class="btn btn-primary" onclick="closeAchievement()">확인</button>
     </div>
 
-    <div class="main-content">
-        <div class="panel">
-            <h2>📚 학습 주제 선택</h2>
-            <div class="topic-buttons">
-                <button class="topic-btn active" onclick="loadTopic('datatypes')">자료형</button>
-                <button class="topic-btn" onclick="loadTopic('numpy')">Numpy</button>
-                <button class="topic-btn" onclick="loadTopic('pandas')">Pandas</button>
-                <button class="topic-btn" onclick="loadTopic('data_loading')">📂 데이터 불러오기</button>
-                <button class="topic-btn" onclick="loadTopic('operations')">연산</button>
-            </div>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-            <div class="question-card">
-                <div class="question-text" id="question">문제를 로딩 중...</div>
-                <div class="code-editor" id="example-code"></div>
-            </div>
-
-            <div class="button-group">
-                <button class="btn btn-warning" onclick="showHint()">💡 힌트</button>
-                <button class="btn btn-success" onclick="nextQuestion()">다음 문제 ➡️</button>
-            </div>
-
-            <div class="hint-box" id="hint"></div>
-        </div>
-
-        <div class="panel">
-            <h2>💻 코드 작성 공간</h2>
-            <textarea class="code-input" id="code-input" placeholder="여기에 Python 코드를 작성하세요..."></textarea>
-
-            <div class="button-group">
-                <button class="btn btn-success" onclick="checkAnswer()">✅ 정답 확인</button>
-                <button class="btn btn-primary" onclick="clearCode()">🗑️ 코드 지우기</button>
-            </div>
-
-            <div class="feedback" id="feedback"></div>
-
-            <h3 style="margin-top: 20px; color: #667eea;">💡 예상 출력:</h3>
-            <div class="output-box" id="expected-output">정답을 확인하면 예상 출력이 표시됩니다...</div>
-        </div>
-    </div>
-</div>
-
-<!-- 학생 정보 입력 모달 -->
-<div class="overlay" id="name-overlay"></div>
-<div class="name-input-modal" id="name-modal">
-    <h2>👋 환영합니다!</h2>
-    <p>학습을 시작하기 전에 정보를 입력해주세요.</p>
-    <input type="text" id="name-input" placeholder="이름을 입력하세요 (예: 김철수)">
-    <input type="text" id="id-input" placeholder="학번을 입력하세요 (예: 20241234)">
-    <button class="btn btn-primary" onclick="saveStudentInfo()">시작하기</button>
-</div>
-
-<div class="overlay" id="overlay" onclick="closeAchievement()"></div>
-<div class="achievement-popup" id="achievement">
-    <div class="achievement-icon">🏆</div>
-    <h2 id="achievement-text">축하합니다!</h2>
-    <p id="achievement-desc"></p>
-    <button class="btn btn-primary" onclick="closeAchievement()">확인</button>
-</div>
-
-<!-- Firebase SDK -->
-<script src="<https://www..com/firebasejs/9.22.0/firebase-app-compat.js>"></script>
-<script src="<https://www..com/firebasejs/9.22.0/firebase-database-compat.js>"></script>
-
-<script>
-    // ⚠️ Firebase 설정 - 여기에 Firebase Console에서 받은 설정을 붙여넣으세요!
-    const firebaseConfig = {
-		apiKey: "AIzaSyBHOBXMqpBDsDIMONQqWZ83qxIxhU0VyG8",
- 		authDomain: "python-learning-system.firebaseapp.com",
-  		databaseURL: "https://python-learning-system-default-rtdb.asia-southeast1.firebasedatabase.app",
-  		projectId: "python-learning-system",
-  		storageBucket: "python-learning-system.firebasestorage.app",
-  		messagingSenderId: "844754646343",
-  		appId: "1:844754646343:web:da76658dae2e91d6468862",
-  		measurementId: "G-9Q0JVVT0QB"
-    };
-
-    // Firebase 초기화
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
-    // 문제 데이터베이스 (이전과 동일)
-    const questions = {
-        'datatypes': [
-            {
-                question: '정수형 변수 x에 100을 할당하고, 변수의 타입을 출력하세요.',
-                example: 'x = 10\\nprint(type(x))  # <class \\'int\\'>',
-                hint: 'type() 함수를 사용하여 변수의 타입을 확인할 수 있습니다.',
-                expectedOutput: "<class 'int'>",
-                keywords: ['x', '=', '100', 'print', 'type', '(x)'],
-                difficulty: 'easy'
-            },
-            {
-                question: '리스트 [1, 2, 3, 4, 5]를 생성하고, 리스트의 길이를 출력하세요.',
-                example: 'my_list = [10, 20, 30]\\nprint(len(my_list))  # 3',
-                hint: 'len() 함수를 사용하여 리스트의 길이를 구할 수 있습니다.',
-                expectedOutput: '5',
-                keywords: ['[', '1', '2', '3', '4', '5', ']', 'len', 'print'],
-                difficulty: 'easy'
-            }
-        ],
-        'numpy': [
-            {
-                question: 'numpy를 import하고, [1, 2, 3, 4, 5]로 배열을 생성한 후 배열의 합을 출력하세요.',
-                example: 'import numpy as np\\narr = np.array([10, 20, 30])\\nprint(np.sum(arr))  # 60',
-                hint: 'np.sum() 함수를 사용하여 배열의 합을 구할 수 있습니다.',
-                expectedOutput: '15',
-                keywords: ['import', 'numpy', 'np', 'array', 'sum', 'print'],
-                difficulty: 'medium'
-            }
-        ],
-        'pandas': [
-            {
-                question: 'pandas를 import하고, [10, 20, 30]으로 Series를 생성한 후 출력하세요.',
-                example: 'import pandas as pd\\ns = pd.Series([1, 2, 3])\\nprint(s)',
-                hint: 'pd.Series()를 사용하여 시리즈를 생성할 수 있습니다.',
-                expectedOutput: '0    10\\n1    20\\n2    30',
-                keywords: ['import', 'pandas', 'pd', 'Series', '[10, 20, 30]', 'print'],
-                difficulty: 'medium'
-            }
-        ],
-        'data_loading': [
-            {
-                question: 'pandas를 import하고, CSV 파일 "data.csv"를 읽어서 df 변수에 저장한 후, 상위 5개 행을 출력하세요.',
-                example: 'import pandas as pd\\ndf = pd.read_csv("file.csv")\\nprint(df.head())',
-                hint: 'pd.read_csv()로 CSV 파일을 읽고, .head()로 상위 행을 확인할 수 있습니다.',
-                expectedOutput: 'DataFrame의 상위 5개 행',
-                keywords: ['import', 'pandas', 'pd', 'read_csv', 'data.csv', 'df', 'head', 'print'],
-                difficulty: 'medium'
-            }
-        ],
-        'operations': [
-            {
-                question: '5 + 3 * 2의 결과를 출력하세요.',
-                example: 'print(2 + 3)  # 5',
-                hint: '연산자 우선순위를 고려하세요. 곱셈이 먼저 계산됩니다.',
-                expectedOutput: '11',
-                keywords: ['5', '+', '3', '*', '2', 'print'],
-                difficulty: 'easy'
-            }
-        ]
-    };
-
-    // 게임 상태
-    let gameState = {
-        currentTopic: 'datatypes',
-        currentQuestion: 0,
-        score: 0,
-        solved: 0,
-        streak: 0,
-        level: 1,
-        totalQuestions: 0,
-        studentName: '',
-        studentId: '',
-        studentKey: ''
-    };
-
-    // 총 문제 수 계산
-    function calculateTotalQuestions() {
-        let total = 0;
-        for (let topic in questions) {
-            total += questions[topic].length;
-        }
-        return total;
-    }
-
-    gameState.totalQuestions = calculateTotalQuestions();
-
-    // Firebase에 데이터 저장
-    function syncToFirebase() {
-        if (!gameState.studentKey) return;
-
-        const syncStatus = document.getElementById('sync-status');
-        syncStatus.textContent = '⏳ 동기화 중...';
-        syncStatus.className = 'sync-status syncing';
-
-        const studentData = {
-            name: gameState.studentName,
-            studentId: gameState.studentId,
-            score: gameState.score,
-            solved: gameState.solved,
-            streak: gameState.streak,
-            level: gameState.level,
-            progress: (gameState.solved / gameState.totalQuestions) * 100,
-            lastActive: firebase.database.ServerValue.TIMESTAMP,
-            currentTopic: gameState.currentTopic,
-            currentQuestion: gameState.currentQuestion
+    <script>
+        // ⚠️ Firebase 설정 - 여기에 Firebase Console에서 받은 설정을 붙여넣으세요!
+        const firebaseConfig = {
+            apiKey: "AIzaSyBHOBXMqpBDsDIMONQqWZ83qxIxhU0VyG8",
+  			authDomain: "python-learning-system.firebaseapp.com",
+  			databaseURL: "https://python-learning-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+  			projectId: "python-learning-system",
+  			storageBucket: "python-learning-system.firebasestorage.app",
+  			messagingSenderId: "844754646343",
+  			appId: "1:844754646343:web:da76658dae2e91d6468862",
+  			measurementId: "G-9Q0JVVT0QB"
         };
 
-        database.ref('students/' + gameState.studentKey).set(studentData)
-            .then(() => {
-                syncStatus.textContent = '✓ 동기화됨';
-                syncStatus.className = 'sync-status synced';
-            })
-            .catch((error) => {
-                console.error('Firebase sync error:', error);
-                syncStatus.textContent = '⚠️ 동기화 실패';
-            });
-    }
+        // Firebase 초기화
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-    // 학습 활동 기록
-    function logActivity(activity, details) {
-        if (!gameState.studentKey) return;
-
-        const activityLog = {
-            studentKey: gameState.studentKey,
-            studentName: gameState.studentName,
-            studentId: gameState.studentId,
-            activity: activity,
-            details: details,
-            timestamp: firebase.database.ServerValue.TIMESTAMP
+        // 문제 데이터베이스 (이전과 동일)
+        const questions = {
+            'datatypes': [
+                {
+                    question: '정수형 변수 x에 100을 할당하고, 변수의 타입을 출력하세요.',
+                    example: 'x = 10\nprint(type(x))  # <class \'int\'>',
+                    hint: 'type() 함수를 사용하여 변수의 타입을 확인할 수 있습니다.',
+                    expectedOutput: "<class 'int'>",
+                    keywords: ['x', '=', '100', 'print', 'type', '(x)'],
+                    difficulty: 'easy'
+                },
+                {
+                    question: '리스트 [1, 2, 3, 4, 5]를 생성하고, 리스트의 길이를 출력하세요.',
+                    example: 'my_list = [10, 20, 30]\nprint(len(my_list))  # 3',
+                    hint: 'len() 함수를 사용하여 리스트의 길이를 구할 수 있습니다.',
+                    expectedOutput: '5',
+                    keywords: ['[', '1', '2', '3', '4', '5', ']', 'len', 'print'],
+                    difficulty: 'easy'
+                }
+            ],
+            'numpy': [
+                {
+                    question: 'numpy를 import하고, [1, 2, 3, 4, 5]로 배열을 생성한 후 배열의 합을 출력하세요.',
+                    example: 'import numpy as np\narr = np.array([10, 20, 30])\nprint(np.sum(arr))  # 60',
+                    hint: 'np.sum() 함수를 사용하여 배열의 합을 구할 수 있습니다.',
+                    expectedOutput: '15',
+                    keywords: ['import', 'numpy', 'np', 'array', 'sum', 'print'],
+                    difficulty: 'medium'
+                }
+            ],
+            'pandas': [
+                {
+                    question: 'pandas를 import하고, [10, 20, 30]으로 Series를 생성한 후 출력하세요.',
+                    example: 'import pandas as pd\ns = pd.Series([1, 2, 3])\nprint(s)',
+                    hint: 'pd.Series()를 사용하여 시리즈를 생성할 수 있습니다.',
+                    expectedOutput: '0    10\n1    20\n2    30',
+                    keywords: ['import', 'pandas', 'pd', 'Series', '[10, 20, 30]', 'print'],
+                    difficulty: 'medium'
+                }
+            ],
+            'data_loading': [
+                {
+                    question: 'pandas를 import하고, CSV 파일 "data.csv"를 읽어서 df 변수에 저장한 후, 상위 5개 행을 출력하세요.',
+                    example: 'import pandas as pd\ndf = pd.read_csv("file.csv")\nprint(df.head())',
+                    hint: 'pd.read_csv()로 CSV 파일을 읽고, .head()로 상위 행을 확인할 수 있습니다.',
+                    expectedOutput: 'DataFrame의 상위 5개 행',
+                    keywords: ['import', 'pandas', 'pd', 'read_csv', 'data.csv', 'df', 'head', 'print'],
+                    difficulty: 'medium'
+                }
+            ],
+            'operations': [
+                {
+                    question: '5 + 3 * 2의 결과를 출력하세요.',
+                    example: 'print(2 + 3)  # 5',
+                    hint: '연산자 우선순위를 고려하세요. 곱셈이 먼저 계산됩니다.',
+                    expectedOutput: '11',
+                    keywords: ['5', '+', '3', '*', '2', 'print'],
+                    difficulty: 'easy'
+                }
+            ]
         };
 
-        database.ref('activities').push(activityLog);
-    }
+        // 게임 상태
+        let gameState = {
+            currentTopic: 'datatypes',
+            currentQuestion: 0,
+            score: 0,
+            solved: 0,
+            streak: 0,
+            level: 1,
+            totalQuestions: 0,
+            studentName: '',
+            studentId: '',
+            studentKey: ''
+        };
 
-    // 통계 업데이트
-    function updateStats() {
-        document.getElementById('score').textContent = gameState.score;
-        document.getElementById('solved').textContent = gameState.solved;
-        document.getElementById('streak').textContent = gameState.streak;
-        document.getElementById('level').textContent = gameState.level;
-
-        const progress = (gameState.solved / gameState.totalQuestions) * 100;
-        const progressBar = document.getElementById('progress');
-        progressBar.style.width = progress + '%';
-        progressBar.textContent = Math.round(progress) + '%';
-
-        // Firebase 동기화
-        syncToFirebase();
-    }
-
-    // 학생 정보 저장
-    function saveStudentInfo() {
-        const name = document.getElementById('name-input').value.trim();
-        const id = document.getElementById('id-input').value.trim();
-
-        if (!name || !id) {
-            alert('이름과 학번을 모두 입력해주세요!');
-            return;
+        // 총 문제 수 계산
+        function calculateTotalQuestions() {
+            let total = 0;
+            for (let topic in questions) {
+                total += questions[topic].length;
+            }
+            return total;
         }
 
-        gameState.studentName = name;
-        gameState.studentId = id;
-        gameState.studentKey = id.replace(/[^a-zA-Z0-9]/g, ''); // Firebase 키로 사용 가능하게 변환
+        gameState.totalQuestions = calculateTotalQuestions();
 
-        updateStudentDisplay();
-        closeNameModal();
+        // Firebase에 데이터 저장
+        function syncToFirebase() {
+            if (!gameState.studentKey) return;
 
-        // Firebase에 저장
-        syncToFirebase();
-        logActivity('login', 'Student logged in');
+            const syncStatus = document.getElementById('sync-status');
+            syncStatus.textContent = '⏳ 동기화 중...';
+            syncStatus.className = 'sync-status syncing';
 
-        showAchievement('등록 완료! 🎉', `${name}님, 학습을 시작합니다!`);
-    }
+            const studentData = {
+                name: gameState.studentName,
+                studentId: gameState.studentId,
+                score: gameState.score,
+                solved: gameState.solved,
+                streak: gameState.streak,
+                level: gameState.level,
+                progress: (gameState.solved / gameState.totalQuestions) * 100,
+                lastActive: firebase.database.ServerValue.TIMESTAMP,
+                currentTopic: gameState.currentTopic,
+                currentQuestion: gameState.currentQuestion
+            };
 
-    // 학생 정보 표시 업데이트
-    function updateStudentDisplay() {
-        document.getElementById('student-name').textContent = gameState.studentName || '환영합니다!';
-        document.getElementById('student-id').textContent = gameState.studentId ? `학번: ${gameState.studentId}` : '학번: 미등록';
-    }
+            database.ref('students/' + gameState.studentKey).set(studentData)
+                .then(() => {
+                    syncStatus.textContent = '✓ 동기화됨';
+                    syncStatus.className = 'sync-status synced';
+                })
+                .catch((error) => {
+                    console.error('Firebase sync error:', error);
+                    syncStatus.textContent = '⚠️ 동기화 실패';
+                });
+        }
 
-    // 학생 정보 변경
-    function changeStudentInfo() {
-        document.getElementById('name-input').value = gameState.studentName || '';
-        document.getElementById('id-input').value = gameState.studentId || '';
-        document.getElementById('name-modal').classList.add('show');
-        document.getElementById('name-overlay').classList.add('show');
-    }
+        // 학습 활동 기록
+        function logActivity(activity, details) {
+            if (!gameState.studentKey) return;
 
-    // 이름 모달 닫기
-    function closeNameModal() {
-        document.getElementById('name-modal').classList.remove('show');
-        document.getElementById('name-overlay').classList.remove('show');
-    }
+            const activityLog = {
+                studentKey: gameState.studentKey,
+                studentName: gameState.studentName,
+                studentId: gameState.studentId,
+                activity: activity,
+                details: details,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
 
-    // 이름 모달 표시
-    function showNameModal() {
-        document.getElementById('name-modal').classList.add('show');
-        document.getElementById('name-overlay').classList.add('show');
-    }
+            database.ref('activities').push(activityLog);
+        }
 
-    // 주제 로드
-    function loadTopic(topic) {
-        gameState.currentTopic = topic;
-        gameState.currentQuestion = 0;
+        // 통계 업데이트
+        function updateStats() {
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('solved').textContent = gameState.solved;
+            document.getElementById('streak').textContent = gameState.streak;
+            document.getElementById('level').textContent = gameState.level;
+            
+            const progress = (gameState.solved / gameState.totalQuestions) * 100;
+            const progressBar = document.getElementById('progress');
+            progressBar.style.width = progress + '%';
+            progressBar.textContent = Math.round(progress) + '%';
 
-        document.querySelectorAll('.topic-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
+            // Firebase 동기화
+            syncToFirebase();
+        }
 
-        event.target.classList.add('active');
+        // 학생 정보 저장
+        function saveStudentInfo() {
+            const name = document.getElementById('name-input').value.trim();
+            const id = document.getElementById('id-input').value.trim();
+            
+            if (!name || !id) {
+                alert('이름과 학번을 모두 입력해주세요!');
+                return;
+            }
 
-        loadQuestion();
-        logActivity('topic_change', `Changed to ${topic}`);
-    }
+            gameState.studentName = name;
+            gameState.studentId = id;
+            gameState.studentKey = id.replace(/[^a-zA-Z0-9]/g, ''); // Firebase 키로 사용 가능하게 변환
+            
+            updateStudentDisplay();
+            closeNameModal();
+            
+            // Firebase에 저장
+            syncToFirebase();
+            logActivity('login', 'Student logged in');
+            
+            showAchievement('등록 완료! 🎉', `${name}님, 학습을 시작합니다!`);
+        }
 
-    // 문제 로드
-    function loadQuestion() {
-        const topic = gameState.currentTopic;
-        const qIndex = gameState.currentQuestion;
+        // 학생 정보 표시 업데이트
+        function updateStudentDisplay() {
+            document.getElementById('student-name').textContent = gameState.studentName || '환영합니다!';
+            document.getElementById('student-id').textContent = gameState.studentId ? `학번: ${gameState.studentId}` : '학번: 미등록';
+        }
 
-        if (qIndex >= questions[topic].length) {
+        // 학생 정보 변경
+        function changeStudentInfo() {
+            document.getElementById('name-input').value = gameState.studentName || '';
+            document.getElementById('id-input').value = gameState.studentId || '';
+            document.getElementById('name-modal').classList.add('show');
+            document.getElementById('name-overlay').classList.add('show');
+        }
+
+        // 이름 모달 닫기
+        function closeNameModal() {
+            document.getElementById('name-modal').classList.remove('show');
+            document.getElementById('name-overlay').classList.remove('show');
+        }
+
+        // 이름 모달 표시
+        function showNameModal() {
+            document.getElementById('name-modal').classList.add('show');
+            document.getElementById('name-overlay').classList.add('show');
+        }
+
+        // 주제 로드
+        function loadTopic(topic) {
+            gameState.currentTopic = topic;
             gameState.currentQuestion = 0;
+            
+            document.querySelectorAll('.topic-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+            
             loadQuestion();
-            return;
+            logActivity('topic_change', `Changed to ${topic}`);
         }
 
-        const q = questions[topic][qIndex];
-
-        const difficultyBadge = `<span class="difficulty-badge difficulty-${q.difficulty}">${q.difficulty === 'easy' ? '쉬움' : q.difficulty === 'medium' ? '보통' : '어려움'}</span>`;
-
-        document.getElementById('question').innerHTML = q.question + difficultyBadge;
-        document.getElementById('example-code').textContent = q.example;
-        document.getElementById('hint').textContent = q.hint;
-        document.getElementById('hint').classList.remove('show');
-        document.getElementById('feedback').classList.remove('show');
-        document.getElementById('expected-output').textContent = '정답을 확인하면 예상 출력이 표시됩니다...';
-
-        syncToFirebase();
-    }
-
-    // 힌트 표시
-    function showHint() {
-        document.getElementById('hint').classList.add('show');
-        logActivity('hint_used', `Topic: ${gameState.currentTopic}, Question: ${gameState.currentQuestion}`);
-    }
-
-    // 다음 문제
-    function nextQuestion() {
-        gameState.currentQuestion++;
-        loadQuestion();
-    }
-
-    // 코드 지우기
-    function clearCode() {
-        if (confirm('작성한 코드를 모두 지우시겠습니까?')) {
-            document.getElementById('code-input').value = '';
-        }
-    }
-
-    // 정답 확인
-    function checkAnswer() {
-        const code = document.getElementById('code-input').value.trim();
-
-        if (!code) {
-            alert('코드를 작성해주세요!');
-            return;
-        }
-
-        const topic = gameState.currentTopic;
-        const qIndex = gameState.currentQuestion;
-        const q = questions[topic][qIndex];
-
-        let keywordsFound = 0;
-        q.keywords.forEach(keyword => {
-            if (code.includes(keyword)) {
-                keywordsFound++;
+        // 문제 로드
+        function loadQuestion() {
+            const topic = gameState.currentTopic;
+            const qIndex = gameState.currentQuestion;
+            
+            if (qIndex >= questions[topic].length) {
+                gameState.currentQuestion = 0;
+                loadQuestion();
+                return;
             }
-        });
-
-        const keywordRatio = keywordsFound / q.keywords.length;
-
-        let points = 100;
-        if (q.difficulty === 'medium') points = 150;
-        if (q.difficulty === 'hard') points = 200;
-
-        const feedback = document.getElementById('feedback');
-        const expectedOutput = document.getElementById('expected-output');
-
-        if (keywordRatio >= 0.7) {
-            gameState.score += points;
-            gameState.solved++;
-            gameState.streak++;
-
-            if (gameState.score >= gameState.level * 500) {
-                gameState.level++;
-                showAchievement('레벨업! 🎉', `레벨 ${gameState.level}에 도달했습니다!`);
-            }
-
-            feedback.textContent = `✅ 정답입니다! +${points}점 (연속 ${gameState.streak}문제)`;
-            feedback.className = 'feedback success show';
-            expectedOutput.textContent = `예상 출력:\\n${q.expectedOutput}`;
-            expectedOutput.style.color = '#4ec9b0';
-
-            updateStats();
-            logActivity('question_solved', `Topic: ${topic}, Question: ${qIndex}, Points: ${points}`);
-
-            setTimeout(nextQuestion, 3000);
-        } else {
-            gameState.streak = 0;
-            feedback.textContent = `❌ 다시 시도해보세요! 필요한 코드: ${Math.round(keywordRatio * 100)}% / 70%\\n💡 힌트 버튼을 눌러보세요!`;
-            feedback.className = 'feedback error show';
-
-            updateStats();
-            logActivity('question_failed', `Topic: ${topic}, Question: ${qIndex}`);
+            
+            const q = questions[topic][qIndex];
+            
+            const difficultyBadge = `<span class="difficulty-badge difficulty-${q.difficulty}">${q.difficulty === 'easy' ? '쉬움' : q.difficulty === 'medium' ? '보통' : '어려움'}</span>`;
+            
+            document.getElementById('question').innerHTML = q.question + difficultyBadge;
+            document.getElementById('example-code').textContent = q.example;
+            document.getElementById('hint').textContent = q.hint;
+            document.getElementById('hint').classList.remove('show');
+            document.getElementById('feedback').classList.remove('show');
+            document.getElementById('expected-output').textContent = '정답을 확인하면 예상 출력이 표시됩니다...';
+            
+            syncToFirebase();
         }
-    }
 
-    // 성취 팝업 표시
-    function showAchievement(title, desc) {
-        document.getElementById('achievement-text').textContent = title;
-        document.getElementById('achievement-desc').textContent = desc;
-        document.getElementById('achievement').classList.add('show');
-        document.getElementById('overlay').classList.add('show');
-    }
+        // 힌트 표시
+        function showHint() {
+            document.getElementById('hint').classList.add('show');
+            logActivity('hint_used', `Topic: ${gameState.currentTopic}, Question: ${gameState.currentQuestion}`);
+        }
 
-    // 성취 팝업 닫기
-    function closeAchievement() {
-        document.getElementById('achievement').classList.remove('show');
-        document.getElementById('overlay').classList.remove('show');
-    }
+        // 다음 문제
+        function nextQuestion() {
+            gameState.currentQuestion++;
+            loadQuestion();
+        }
 
-    // 초기화
-    window.onload = function() {
-        setTimeout(() => {
-            showNameModal();
-        }, 500);
+        // 코드 지우기
+        function clearCode() {
+            if (confirm('작성한 코드를 모두 지우시겠습니까?')) {
+                document.getElementById('code-input').value = '';
+            }
+        }
 
-        loadQuestion();
-        updateStats();
-    };
-</script>
+        // 정답 확인
+        function checkAnswer() {
+            const code = document.getElementById('code-input').value.trim();
+            
+            if (!code) {
+                alert('코드를 작성해주세요!');
+                return;
+            }
+            
+            const topic = gameState.currentTopic;
+            const qIndex = gameState.currentQuestion;
+            const q = questions[topic][qIndex];
+            
+            let keywordsFound = 0;
+            q.keywords.forEach(keyword => {
+                if (code.includes(keyword)) {
+                    keywordsFound++;
+                }
+            });
+            
+            const keywordRatio = keywordsFound / q.keywords.length;
+            
+            let points = 100;
+            if (q.difficulty === 'medium') points = 150;
+            if (q.difficulty === 'hard') points = 200;
+            
+            const feedback = document.getElementById('feedback');
+            const expectedOutput = document.getElementById('expected-output');
+            
+            if (keywordRatio >= 0.7) {
+                gameState.score += points;
+                gameState.solved++;
+                gameState.streak++;
+                
+                if (gameState.score >= gameState.level * 500) {
+                    gameState.level++;
+                    showAchievement('레벨업! 🎉', `레벨 ${gameState.level}에 도달했습니다!`);
+                }
+                
+                feedback.textContent = `✅ 정답입니다! +${points}점 (연속 ${gameState.streak}문제)`;
+                feedback.className = 'feedback success show';
+                expectedOutput.textContent = `예상 출력:\n${q.expectedOutput}`;
+                expectedOutput.style.color = '#4ec9b0';
+                
+                updateStats();
+                logActivity('question_solved', `Topic: ${topic}, Question: ${qIndex}, Points: ${points}`);
+                
+                setTimeout(nextQuestion, 3000);
+            } else {
+                gameState.streak = 0;
+                feedback.textContent = `❌ 다시 시도해보세요! 필요한 코드: ${Math.round(keywordRatio * 100)}% / 70%\n💡 힌트 버튼을 눌러보세요!`;
+                feedback.className = 'feedback error show';
+                
+                updateStats();
+                logActivity('question_failed', `Topic: ${topic}, Question: ${qIndex}`);
+            }
+        }
 
-```
+        // 성취 팝업 표시
+        function showAchievement(title, desc) {
+            document.getElementById('achievement-text').textContent = title;
+            document.getElementById('achievement-desc').textContent = desc;
+            document.getElementById('achievement').classList.add('show');
+            document.getElementById('overlay').classList.add('show');
+        }
 
+        // 성취 팝업 닫기
+        function closeAchievement() {
+            document.getElementById('achievement').classList.remove('show');
+            document.getElementById('overlay').classList.remove('show');
+        }
+
+        // 초기화
+        window.onload = function() {
+            setTimeout(() => {
+                showNameModal();
+            }, 500);
+            
+            loadQuestion();
+            updateStats();
+        };
+    </script>
 </body>
 </html>
