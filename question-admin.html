@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문제 관리 시스템 - 교수 전용</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .panel {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .panel h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .questions-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .question-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+            position: relative;
+        }
+
+        .question-card.disabled {
+            opacity: 0.5;
+            border-left-color: #999;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .question-id {
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .question-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 5px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+
+        .edit-btn {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .toggle-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .question-text {
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .question-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .meta-badge {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .difficulty-easy {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .difficulty-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .difficulty-hard {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .stats-badge {
+            background: #e7f3ff;
+            color: #004085;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 25px;
+            background: #f8f9fa;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .keyword-input {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .keyword-tag {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin: 5px;
+        }
+
+        .keyword-tag button {
+            background: none;
+            border: none;
+            color: white;
+            margin-left: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 1.2em;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .filter-controls select {
+            padding: 10px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .upload-btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>📝 문제 관리 시스템</h1>
+                <p>실시간 문제 추가/수정/삭제</p>
+            </div>
+            <div>
+                <button class="btn btn-success" onclick="showAddModal()">➕ 새 문제 추가</button>
+                <button class="btn btn-primary" onclick="uploadAllQuestions()">📤 기존 문제 일괄 업로드</button>
+            </div>
+        </div>
+
+        <div id="success-message" class="success-message"></div>
+
+        <div class="panel">
+            <h2>📚 문제 목록</h2>
+            
+            <div class="filter-controls">
+                <select id="category-filter" onchange="filterQuestions()">
+                    <option value="">전체 주제</option>
+                    <option value="datatypes">자료형</option>
+                    <option value="numpy">Numpy</option>
+                    <option value="pandas">Pandas</option>
+                    <option value="data_loading">데이터 불러오기</option>
+                    <option value="operations">연산</option>
+                </select>
+                
+                <select id="difficulty-filter" onchange="filterQuestions()">
+                    <option value="">전체 난이도</option>
+                    <option value="easy">쉬움</option>
+                    <option value="medium">보통</option>
+                    <option value="hard">어려움</option>
+                </select>
+
+                <select id="status-filter" onchange="filterQuestions()">
+                    <option value="">전체 상태</option>
+                    <option value="enabled">활성화</option>
+                    <option value="disabled">비활성화</option>
+                </select>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('all')">전체</button>
+                <button class="tab" onclick="switchTab('datatypes')">자료형</button>
+                <button class="tab" onclick="switchTab('numpy')">Numpy</button>
+                <button class="tab" onclick="switchTab('pandas')">Pandas</button>
+                <button class="tab" onclick="switchTab('data_loading')">데이터 불러오기</button>
+                <button class="tab" onclick="switchTab('operations')">연산</button>
+            </div>
+
+            <div id="questions-list">
+                <div class="loading">문제를 불러오는 중...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 문제 추가/수정 모달 -->
+    <div id="question-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">새 문제 추가</h2>
+            
+            <form id="question-form">
+                <input type="hidden" id="edit-question-id">
+                
+                <div class="form-group">
+                    <label>주제 *</label>
+                    <select id="question-category" required>
+                        <option value="datatypes">자료형</option>
+                        <option value="numpy">Numpy</option>
+                        <option value="pandas">Pandas</option>
+                        <option value="data_loading">데이터 불러오기</option>
+                        <option value="operations">연산</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>문제 *</label>
+                    <textarea id="question-text" required placeholder="문제를 입력하세요..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>예제 코드</label>
+                    <textarea id="question-example" placeholder="예제 코드를 입력하세요..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>힌트</label>
+                    <textarea id="question-hint" placeholder="힌트를 입력하세요..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>예상 출력 *</label>
+                    <input type="text" id="question-output" required placeholder="예상 출력을 입력하세요...">
+                </div>
+
+                <div class="form-group">
+                    <label>난이도 *</label>
+                    <select id="question-difficulty" required>
+                        <option value="easy">쉬움 (100점)</option>
+                        <option value="medium">보통 (150점)</option>
+                        <option value="hard">어려움 (200점)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>키워드 (쉼표로 구분)</label>
+                    <input type="text" id="question-keywords" placeholder="예: print, type, variable">
+                    <div id="keywords-display"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>순서</label>
+                    <input type="number" id="question-order" value="1" min="1">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="question-enabled" checked>
+                        활성화
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-danger" onclick="closeModal()">취소</button>
+                    <button type="submit" class="btn btn-success">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        // ⚠️ Firebase 설정 - 다른 파일들과 동일한 설정 사용
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let allQuestions = {};
+        let currentCategory = 'all';
+
+        // 기존 문제 데이터 (일괄 업로드용)
+        const existingQuestions = {
+            'datatypes': [
+                {
+                    question: '정수형 변수 x에 100을 할당하고, 변수의 타입을 출력하세요.',
+                    example: 'x = 10\nprint(type(x))  # <class \'int\'>',
+                    hint: 'type() 함수를 사용하여 변수의 타입을 확인할 수 있습니다.',
+                    expectedOutput: "<class 'int'>",
+                    keywords: ['x', '=', '100', 'print', 'type', '(x)'],
+                    difficulty: 'easy'
+                },
+                {
+                    question: '리스트 [1, 2, 3, 4, 5]를 생성하고, 리스트의 길이를 출력하세요.',
+                    example: 'my_list = [10, 20, 30]\nprint(len(my_list))  # 3',
+                    hint: 'len() 함수를 사용하여 리스트의 길이를 구할 수 있습니다.',
+                    expectedOutput: '5',
+                    keywords: ['[', '1', '2', '3', '4', '5', ']', 'len', 'print'],
+                    difficulty: 'easy'
+                }
+            ],
+            'numpy': [
+                {
+                    question: 'numpy를 import하고, [1, 2, 3, 4, 5]로 배열을 생성한 후 배열의 합을 출력하세요.',
+                    example: 'import numpy as np\narr = np.array([10, 20, 30])\nprint(np.sum(arr))  # 60',
+                    hint: 'np.sum() 함수를 사용하여 배열의 합을 구할 수 있습니다.',
+                    expectedOutput: '15',
+                    keywords: ['import', 'numpy', 'np', 'array', 'sum', 'print'],
+                    difficulty: 'medium'
+                }
+            ],
+            'pandas': [
+                {
+                    question: 'pandas를 import하고, [10, 20, 30]으로 Series를 생성한 후 출력하세요.',
+                    example: 'import pandas as pd\ns = pd.Series([1, 2, 3])\nprint(s)',
+                    hint: 'pd.Series()를 사용하여 시리즈를 생성할 수 있습니다.',
+                    expectedOutput: '0    10\n1    20\n2    30',
+                    keywords: ['import', 'pandas', 'pd', 'Series', '[10, 20, 30]', 'print'],
+                    difficulty: 'medium'
+                }
+            ],
+            'data_loading': [
+                {
+                    question: 'pandas를 import하고, CSV 파일 "data.csv"를 읽어서 df 변수에 저장한 후, 상위 5개 행을 출력하세요.',
+                    example: 'import pandas as pd\ndf = pd.read_csv("file.csv")\nprint(df.head())',
+                    hint: 'pd.read_csv()로 CSV 파일을 읽고, .head()로 상위 행을 확인할 수 있습니다.',
+                    expectedOutput: 'DataFrame의 상위 5개 행',
+                    keywords: ['import', 'pandas', 'pd', 'read_csv', 'data.csv', 'df', 'head', 'print'],
+                    difficulty: 'medium'
+                }
+            ],
+            'operations': [
+                {
+                    question: '5 + 3 * 2의 결과를 출력하세요.',
+                    example: 'print(2 + 3)  # 5',
+                    hint: '연산자 우선순위를 고려하세요. 곱셈이 먼저 계산됩니다.',
+                    expectedOutput: '11',
+                    keywords: ['5', '+', '3', '*', '2', 'print'],
+                    difficulty: 'easy'
+                }
+            ]
+        };
+
+        // 실시간 문제 로드
+        database.ref('questions').on('value', (snapshot) => {
+            allQuestions = snapshot.val() || {};
+            displayQuestions();
+        });
+
+        // 문제 표시
+        function displayQuestions() {
+            const container = document.getElementById('questions-list');
+            
+            if (Object.keys(allQuestions).length === 0) {
+                container.innerHTML = '<div class="loading">등록된 문제가 없습니다.</div>';
+                return;
+            }
+
+            let html = '<div class="questions-grid">';
+
+            Object.keys(allQuestions).forEach(category => {
+                if (currentCategory !== 'all' && currentCategory !== category) return;
+
+                Object.keys(allQuestions[category]).forEach(qId => {
+                    const q = allQuestions[category][qId];
+                    const difficultyClass = `difficulty-${q.difficulty}`;
+                    const disabledClass = q.enabled ? '' : 'disabled';
+                    const points = q.points || (q.difficulty === 'easy' ? 100 : q.difficulty === 'medium' ? 150 : 200);
+
+                    html += `
+                        <div class="question-card ${disabledClass}">
+                            <div class="question-header">
+                                <span class="question-id">${qId}</span>
+                                <div class="question-actions">
+                                    <button class="action-btn toggle-btn" onclick="toggleQuestion('${category}', '${qId}')">
+                                        ${q.enabled ? '비활성화' : '활성화'}
+                                    </button>
+                                    <button class="action-btn edit-btn" onclick="editQuestion('${category}', '${qId}')">수정</button>
+                                    <button class="action-btn delete-btn" onclick="deleteQuestion('${category}', '${qId}')">삭제</button>
+                                </div>
+                            </div>
+                            <div class="question-text">${q.question}</div>
+                            <div class="question-meta">
+                                <span class="meta-badge ${difficultyClass}">
+                                    ${q.difficulty === 'easy' ? '쉬움' : q.difficulty === 'medium' ? '보통' : '어려움'}
+                                </span>
+                                <span class="meta-badge stats-badge">${points}점</span>
+                                <span class="meta-badge stats-badge">순서: ${q.order}</span>
+                                <span class="meta-badge stats-badge">${category}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // 탭 전환
+        function switchTab(category) {
+            currentCategory = category;
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            displayQuestions();
+        }
+
+        // 필터링
+        function filterQuestions() {
+            // 구현 생략 (간단히 탭 사용)
+            displayQuestions();
+        }
+
+        // 모달 표시
+        function showAddModal() {
+            document.getElementById('modal-title').textContent = '새 문제 추가';
+            document.getElementById('question-form').reset();
+            document.getElementById('edit-question-id').value = '';
+            document.getElementById('question-modal').classList.add('show');
+        }
+
+        // 모달 닫기
+        function closeModal() {
+            document.getElementById('question-modal').classList.remove('show');
+        }
+
+        // 문제 저장
+        document.getElementById('question-form').onsubmit = function(e) {
+            e.preventDefault();
+            
+            const category = document.getElementById('question-category').value;
+            const editId = document.getElementById('edit-question-id').value;
+            const qId = editId || generateQuestionId(category);
+            
+            const questionData = {
+                id: qId,
+                question: document.getElementById('question-text').value,
+                example: document.getElementById('question-example').value,
+                hint: document.getElementById('question-hint').value,
+                expectedOutput: document.getElementById('question-output').value,
+                keywords: document.getElementById('question-keywords').value.split(',').map(k => k.trim()),
+                difficulty: document.getElementById('question-difficulty').value,
+                points: document.getElementById('question-difficulty').value === 'easy' ? 100 : 
+                       document.getElementById('question-difficulty').value === 'medium' ? 150 : 200,
+                order: parseInt(document.getElementById('question-order').value),
+                enabled: document.getElementById('question-enabled').checked,
+                category: category,
+                createdAt: Date.now(),
+                updatedAt: Date.now()
+            };
+
+            database.ref(`questions/${category}/${qId}`).set(questionData)
+                .then(() => {
+                    showSuccess(editId ? '문제가 수정되었습니다!' : '문제가 추가되었습니다!');
+                    closeModal();
+                })
+                .catch(error => {
+                    alert('오류: ' + error.message);
+                });
+        };
+
+        // 문제 ID 생성
+        function generateQuestionId(category) {
+            const prefix = category.substring(0, 1).toUpperCase();
+            const timestamp = Date.now().toString().slice(-6);
+            return `${prefix}${timestamp}`;
+        }
+
+        // 문제 수정
+        function editQuestion(category, qId) {
+            const q = allQuestions[category][qId];
+            
+            document.getElementById('modal-title').textContent = '문제 수정';
+            document.getElementById('edit-question-id').value = qId;
+            document.getElementById('question-category').value = category;
+            document.getElementById('question-text').value = q.question;
+            document.getElementById('question-example').value = q.example || '';
+            document.getElementById('question-hint').value = q.hint || '';
+            document.getElementById('question-output').value = q.expectedOutput;
+            document.getElementById('question-keywords').value = (q.keywords || []).join(', ');
+            document.getElementById('question-difficulty').value = q.difficulty;
+            document.getElementById('question-order').value = q.order || 1;
+            document.getElementById('question-enabled').checked = q.enabled !== false;
+            
+            document.getElementById('question-modal').classList.add('show');
+        }
+
+        // 문제 삭제
+        function deleteQuestion(category, qId) {
+            if (!confirm('정말 이 문제를 삭제하시겠습니까?')) return;
+            
+            database.ref(`questions/${category}/${qId}`).remove()
+                .then(() => {
+                    showSuccess('문제가 삭제되었습니다!');
+                })
+                .catch(error => {
+                    alert('오류: ' + error.message);
+                });
+        }
+
+        // 문제 활성화/비활성화
+        function toggleQuestion(category, qId) {
+            const q = allQuestions[category][qId];
+            const newStatus = !q.enabled;
+            
+            database.ref(`questions/${category}/${qId}/enabled`).set(newStatus)
+                .then(() => {
+                    showSuccess(newStatus ? '문제가 활성화되었습니다!' : '문제가 비활성화되었습니다!');
+                });
+        }
+
+        // 기존 문제 일괄 업로드
+        function uploadAllQuestions() {
+            if (!confirm('기존 25개 문제를 Firebase에 업로드하시겠습니까?')) return;
+            
+            let count = 0;
+            Object.keys(existingQuestions).forEach(category => {
+                existingQuestions[category].forEach((q, index) => {
+                    const qId = `Q${category.substring(0, 3).toUpperCase()}${String(index + 1).padStart(3, '0')}`;
+                    
+                    database.ref(`questions/${category}/${qId}`).set({
+                        id: qId,
+                        question: q.question,
+                        example: q.example,
+                        hint: q.hint,
+                        expectedOutput: q.expectedOutput,
+                        keywords: q.keywords,
+                        difficulty: q.difficulty,
+                        points: q.difficulty === 'easy' ? 100 : q.difficulty === 'medium' ? 150 : 200,
+                        order: index + 1,
+                        enabled: true,
+                        category: category,
+                        createdAt: Date.now()
+                    }).then(() => {
+                        count++;
+                        if (count === Object.values(existingQuestions).flat().length) {
+                            showSuccess('모든 문제가 업로드되었습니다!');
+                        }
+                    });
+                });
+            });
+        }
+
+        // 성공 메시지
+        function showSuccess(message) {
+            const el = document.getElementById('success-message');
+            el.textContent = message;
+            el.classList.add('show');
+            setTimeout(() => {
+                el.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
