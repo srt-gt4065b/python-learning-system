@@ -359,7 +359,8 @@
             </div>
             <div>
                 <button class="btn btn-success" onclick="showAddModal()">➕ 새 문제 추가</button>
-                <button class="btn btn-primary" onclick="uploadAllQuestions()">📤 기존 문제 일괄 업로드</button>
+                <button class="btn btn-primary" onclick="showCsvUploadModal()" style="margin-left: 10px;">📊 CSV 일괄 업로드</button>
+                <button class="btn btn-primary" onclick="downloadTemplate()" style="margin-left: 10px;">📥 템플릿 다운로드</button>
             </div>
         </div>
 
@@ -481,6 +482,86 @@
         </div>
     </div>
 
+    <!-- CSV 업로드 모달 -->
+    <div class="modal" id="csv-modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <h2>📊 CSV 일괄 업로드</h2>
+            <p style="margin-bottom: 20px; color: #666;">
+                엑셀에서 작성한 문제를 CSV 파일로 저장하여 한 번에 업로드하세요!
+            </p>
+
+            <div style="background: #fff3cd; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <h3 style="color: #856404; margin-bottom: 10px;">📋 CSV 형식 안내</h3>
+                <p style="color: #856404; margin-bottom: 10px;">
+                    다음 순서대로 컬럼을 작성하세요:
+                </p>
+                <ol style="color: #856404; margin-left: 20px;">
+                    <li><strong>category</strong> - 카테고리 (datatypes, numpy, pandas, data_loading, operations)</li>
+                    <li><strong>question</strong> - 문제 내용</li>
+                    <li><strong>example</strong> - 예제 코드 (줄바꿈은 \n으로)</li>
+                    <li><strong>hint</strong> - 힌트</li>
+                    <li><strong>expectedOutput</strong> - 예상 출력</li>
+                    <li><strong>keywords</strong> - 키워드 (쉼표로 구분)</li>
+                    <li><strong>difficulty</strong> - 난이도 (easy, medium, hard)</li>
+                    <li><strong>order</strong> - 순서 (숫자)</li>
+                </ol>
+                <p style="color: #856404; margin-top: 10px;">
+                    💡 <strong>팁:</strong> [📥 템플릿 다운로드] 버튼으로 예제 파일을 받으세요!
+                </p>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 10px; font-weight: bold;">
+                    CSV 파일 선택:
+                </label>
+                <input type="file" id="csv-file-input" accept=".csv" style="
+                    width: 100%;
+                    padding: 10px;
+                    border: 2px dashed #667eea;
+                    border-radius: 10px;
+                    background: #f8f9fa;
+                    cursor: pointer;
+                ">
+            </div>
+
+            <div id="csv-preview" style="display: none; margin-bottom: 20px;">
+                <h3 style="color: #667eea; margin-bottom: 10px;">미리보기</h3>
+                <div id="csv-preview-content" style="
+                    max-height: 300px;
+                    overflow-y: auto;
+                    background: #f8f9fa;
+                    padding: 15px;
+                    border-radius: 10px;
+                    font-family: monospace;
+                    font-size: 0.9em;
+                "></div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-success" onclick="processCsvUpload()" id="upload-csv-btn" disabled>
+                    📤 업로드 시작
+                </button>
+                <button class="btn btn-danger" onclick="closeCsvModal()">
+                    취소
+                </button>
+            </div>
+
+            <div id="csv-upload-progress" style="display: none; margin-top: 20px;">
+                <div style="background: #e7f3ff; padding: 15px; border-radius: 10px;">
+                    <p id="csv-progress-text" style="margin-bottom: 10px;">업로드 중...</p>
+                    <div style="background: #ddd; height: 20px; border-radius: 10px; overflow: hidden;">
+                        <div id="csv-progress-bar" style="
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            height: 100%;
+                            width: 0%;
+                            transition: width 0.3s;
+                        "></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -488,14 +569,13 @@
     <script>
         // ⚠️ Firebase 설정 - 다른 파일들과 동일한 설정 사용
         const firebaseConfig = {
-              apiKey: "AIzaSyBHOBXMqpBDsDIMONQqWZ83qxIxhU0VyG8",
-              authDomain: "python-learning-system.firebaseapp.com",
-              databaseURL: "https://python-learning-system-default-rtdb.asia-southeast1.firebasedatabase.app",
-              projectId: "python-learning-system",
-              storageBucket: "python-learning-system.firebasestorage.app",
-              messagingSenderId: "844754646343",
-              appId: "1:844754646343:web:da76658dae2e91d6468862",
-              measurementId: "G-9Q0JVVT0QB"
+            	apiKey: "AIzaSyBHOBXMqpBDsDIMONQqWZ83qxIxhU0VyG8",
+       		authDomain: "python-learning-system.firebaseapp.com",
+       		databaseURL: "https://python-learning-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+       		projectId: "python-learning-system",
+       		storageBucket: "python-learning-system.firebasestorage.app",
+      		messagingSenderId: "844754646343",
+       		appId: "1:844754646343:web:da76658dae2e91d6468862"
         };
 
         firebase.initializeApp(firebaseConfig);
@@ -767,6 +847,248 @@
                         }
                     });
                 });
+            });
+        }
+
+        // CSV 업로드 모달 표시
+        function showCsvUploadModal() {
+            document.getElementById('csv-modal').classList.add('show');
+            document.getElementById('overlay').classList.add('show');
+            // 초기화
+            document.getElementById('csv-file-input').value = '';
+            document.getElementById('csv-preview').style.display = 'none';
+            document.getElementById('upload-csv-btn').disabled = true;
+            document.getElementById('csv-upload-progress').style.display = 'none';
+        }
+
+        // CSV 모달 닫기
+        function closeCsvModal() {
+            document.getElementById('csv-modal').classList.remove('show');
+            document.getElementById('overlay').classList.remove('show');
+        }
+
+        // CSV 템플릿 다운로드
+        function downloadTemplate() {
+            const csvContent = [
+                ['category', 'question', 'example', 'hint', 'expectedOutput', 'keywords', 'difficulty', 'order'],
+                ['datatypes', '변수 x에 100을 할당하고 타입을 출력하세요.', 'x = 10\\nprint(type(x))', 'type() 함수를 사용하세요.', "<class 'int'>", 'x,=,100,print,type', 'easy', '1'],
+                ['numpy', 'numpy 배열 [1,2,3]의 합을 구하세요.', 'import numpy as np\\narr = np.array([10,20])\\nprint(np.sum(arr))', 'np.sum() 함수를 사용하세요.', '6', 'import,numpy,np,array,sum,print', 'medium', '1'],
+                ['pandas', 'pandas Series [10,20,30]을 생성하세요.', 'import pandas as pd\\ns = pd.Series([1,2,3])\\nprint(s)', 'pd.Series()를 사용하세요.', '0    10\\n1    20\\n2    30', 'import,pandas,pd,Series,print', 'medium', '1']
+            ];
+            
+            const csv = csvContent.map(row => 
+                row.map(cell => `"${cell}"`).join(',')
+            ).join('\n');
+            
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'question_template.csv';
+            link.click();
+            
+            showSuccess('템플릿이 다운로드되었습니다! 엑셀로 열어서 편집하세요.');
+        }
+
+        // CSV 파일 선택 시
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('csv-file-input');
+            if (fileInput) {
+                fileInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        previewCsv(file);
+                    }
+                });
+            }
+        });
+
+        // CSV 미리보기
+        function previewCsv(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split('\n').filter(line => line.trim());
+                
+                if (lines.length < 2) {
+                    showError('CSV 파일이 비어있거나 형식이 올바르지 않습니다.');
+                    return;
+                }
+                
+                // 헤더 확인
+                const headers = parseCSVLine(lines[0]);
+                const requiredHeaders = ['category', 'question', 'example', 'hint', 'expectedOutput', 'keywords', 'difficulty', 'order'];
+                const hasAllHeaders = requiredHeaders.every(h => headers.includes(h));
+                
+                if (!hasAllHeaders) {
+                    showError('CSV 헤더가 올바르지 않습니다. 템플릿을 다운로드하여 확인하세요.');
+                    return;
+                }
+                
+                // 미리보기 표시
+                let preview = `<strong>총 ${lines.length - 1}개 문제</strong><br><br>`;
+                preview += '<table style="width: 100%; border-collapse: collapse;">';
+                preview += '<tr style="background: #667eea; color: white;">';
+                headers.forEach(h => {
+                    preview += `<th style="padding: 8px; text-align: left; border: 1px solid #ddd;">${h}</th>`;
+                });
+                preview += '</tr>';
+                
+                // 처음 5개만 미리보기
+                for (let i = 1; i < Math.min(6, lines.length); i++) {
+                    const cells = parseCSVLine(lines[i]);
+                    preview += '<tr>';
+                    cells.forEach(cell => {
+                        const displayText = cell.length > 30 ? cell.substring(0, 30) + '...' : cell;
+                        preview += `<td style="padding: 8px; border: 1px solid #ddd;">${displayText}</td>`;
+                    });
+                    preview += '</tr>';
+                }
+                
+                if (lines.length > 6) {
+                    preview += `<tr><td colspan="${headers.length}" style="padding: 8px; text-align: center; color: #666;">... 외 ${lines.length - 6}개 문제</td></tr>`;
+                }
+                
+                preview += '</table>';
+                
+                document.getElementById('csv-preview-content').innerHTML = preview;
+                document.getElementById('csv-preview').style.display = 'block';
+                document.getElementById('upload-csv-btn').disabled = false;
+            };
+            
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        // CSV 라인 파싱 (큰따옴표 처리)
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    if (inQuotes && line[i + 1] === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current.trim());
+            return result;
+        }
+
+        // CSV 업로드 처리
+        function processCsvUpload() {
+            const fileInput = document.getElementById('csv-file-input');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showError('파일을 선택해주세요.');
+                return;
+            }
+            
+            document.getElementById('csv-upload-progress').style.display = 'block';
+            document.getElementById('upload-csv-btn').disabled = true;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split('\n').filter(line => line.trim());
+                
+                const headers = parseCSVLine(lines[0]);
+                const categoryIndex = headers.indexOf('category');
+                const questionIndex = headers.indexOf('question');
+                const exampleIndex = headers.indexOf('example');
+                const hintIndex = headers.indexOf('hint');
+                const expectedOutputIndex = headers.indexOf('expectedOutput');
+                const keywordsIndex = headers.indexOf('keywords');
+                const difficultyIndex = headers.indexOf('difficulty');
+                const orderIndex = headers.indexOf('order');
+                
+                const questions = [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const cells = parseCSVLine(lines[i]);
+                    
+                    if (cells.length < 8) continue;
+                    
+                    questions.push({
+                        category: cells[categoryIndex],
+                        question: cells[questionIndex],
+                        example: cells[exampleIndex].replace(/\\n/g, '\n'),
+                        hint: cells[hintIndex],
+                        expectedOutput: cells[expectedOutputIndex],
+                        keywords: cells[keywordsIndex].split(',').map(k => k.trim()),
+                        difficulty: cells[difficultyIndex],
+                        order: parseInt(cells[orderIndex]) || i
+                    });
+                }
+                
+                uploadQuestionsToFirebase(questions);
+            };
+            
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        // Firebase에 문제 업로드
+        function uploadQuestionsToFirebase(questions) {
+            let uploaded = 0;
+            const total = questions.length;
+            
+            const categoryCount = {};
+            
+            questions.forEach((q, index) => {
+                if (!categoryCount[q.category]) {
+                    categoryCount[q.category] = 0;
+                }
+                categoryCount[q.category]++;
+                
+                const qId = `Q${q.category.substring(0, 3).toUpperCase()}${String(categoryCount[q.category]).padStart(3, '0')}`;
+                
+                const questionData = {
+                    id: qId,
+                    question: q.question,
+                    example: q.example,
+                    hint: q.hint,
+                    expectedOutput: q.expectedOutput,
+                    keywords: q.keywords,
+                    difficulty: q.difficulty,
+                    points: q.difficulty === 'easy' ? 100 : q.difficulty === 'medium' ? 150 : 200,
+                    order: q.order,
+                    enabled: true,
+                    category: q.category,
+                    createdAt: Date.now()
+                };
+                
+                database.ref(`questions/${q.category}/${qId}`).set(questionData)
+                    .then(() => {
+                        uploaded++;
+                        const progress = Math.round((uploaded / total) * 100);
+                        document.getElementById('csv-progress-bar').style.width = progress + '%';
+                        document.getElementById('csv-progress-text').textContent = 
+                            `업로드 중... ${uploaded} / ${total} (${progress}%)`;
+                        
+                        if (uploaded === total) {
+                            setTimeout(() => {
+                                showSuccess(`${total}개 문제가 성공적으로 업로드되었습니다!`);
+                                closeCsvModal();
+                                loadAllQuestions();
+                            }, 500);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('업로드 오류:', error);
+                        showError('업로드 중 오류가 발생했습니다: ' + error.message);
+                    });
             });
         }
 
