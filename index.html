@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Python 인터랙티브 학습 시스템 🐍</title>
+    <title>Python 인터랙티브 학습 시스템 🐍 (실행 검증)</title>
     <style>
         * {
             margin: 0;
@@ -43,20 +43,54 @@
             font-size: 1.2em;
         }
 
-        .firebase-badge {
+        .python-badge {
             display: inline-block;
-            background: linear-gradient(135deg, #FFA000 0%, #FF6F00 100%);
+            background: linear-gradient(135deg, #3776ab 0%, #ffd43b 100%);
             color: white;
             padding: 8px 16px;
             border-radius: 20px;
             font-size: 0.9em;
             margin-top: 10px;
-            animation: pulse 2s infinite;
+            font-weight: bold;
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .stats {
@@ -239,6 +273,12 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .hint-box {
             background: #fff3cd;
             border: 2px solid #ffc107;
@@ -308,47 +348,6 @@
             font-weight: bold;
         }
 
-        .achievement-popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            text-align: center;
-            z-index: 1000;
-            transition: transform 0.3s;
-            max-width: 800px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .achievement-popup.show {
-            transform: translate(-50%, -50%) scale(1);
-        }
-
-        .achievement-icon {
-            font-size: 5em;
-            margin-bottom: 20px;
-        }
-
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            z-index: 999;
-        }
-
-        .overlay.show {
-            display: block;
-        }
-
         .difficulty-badge {
             display: inline-block;
             padding: 5px 10px;
@@ -371,92 +370,23 @@
             background: #f8d7da;
             color: #721c24;
         }
-
-        .student-info {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .student-name {
-            font-size: 1.5em;
-            font-weight: bold;
-        }
-
-        .student-id {
-            font-size: 0.9em;
-            opacity: 0.9;
-        }
-
-        .name-input-modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            z-index: 1001;
-            text-align: center;
-            display: none;
-        }
-
-        .name-input-modal.show {
-            display: block;
-        }
-
-        .name-input-modal input {
-            width: 100%;
-            padding: 15px;
-            font-size: 1.2em;
-            border: 2px solid #667eea;
-            border-radius: 10px;
-            margin: 20px 0;
-        }
-
-        .sync-status {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.8em;
-            margin-left: 10px;
-        }
-
-        .sync-status.synced {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .sync-status.syncing {
-            background: #fff3cd;
-            color: #856404;
-        }
     </style>
 </head>
 <body>
+    <!-- Python 로딩 오버레이 -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h2>Python 실행 환경 로딩 중...</h2>
+            <p>잠시만 기다려주세요 (약 10초)</p>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
             <h1>🐍 Python 인터랙티브 학습 시스템</h1>
             <p>코드를 작성하고, 실행하고, 마스터하세요!</p>
-            <span class="firebase-badge">🤖 우리는 AI로 배운다</span>
-        </div>
-
-        <div class="student-info">
-            <div>
-                <div class="student-name" id="student-name">환영합니다!</div>
-                <div class="student-id" id="student-id">학번: 미등록</div>
-            </div>
-            <div>
-                <span class="sync-status synced" id="sync-status">✓ 동기화됨</span>
-                <button class="btn btn-success" onclick="startNewSession()" style="margin-left: 10px;">📚 학습하기</button>
-                <button class="btn btn-danger" onclick="showSummary()" style="margin-left: 10px;">🚪 나가기</button>
-            </div>
+            <span class="python-badge">🚀 실제 Python 실행 검증</span>
         </div>
 
         <div class="stats">
@@ -489,7 +419,7 @@
                     <button class="topic-btn active" onclick="loadTopic('datatypes')">자료형</button>
                     <button class="topic-btn" onclick="loadTopic('numpy')">Numpy</button>
                     <button class="topic-btn" onclick="loadTopic('pandas')">Pandas</button>
-                    <button class="topic-btn" onclick="loadTopic('data_loading')">📂 데이터 불러오기</button>
+                    <button class="topic-btn" onclick="loadTopic('data_loading')">데이터 불러오기</button>
                     <button class="topic-btn" onclick="loadTopic('operations')">연산</button>
                 </div>
 
@@ -511,58 +441,70 @@
                 <textarea class="code-input" id="code-input" placeholder="여기에 Python 코드를 작성하세요..."></textarea>
                 
                 <div class="button-group">
-                    <button class="btn btn-success" onclick="checkAnswer()">✅ 정답 확인</button>
+                    <button class="btn btn-success" onclick="runCode()" id="run-btn">▶️ 실행 및 정답 확인</button>
                     <button class="btn btn-primary" onclick="clearCode()">🗑️ 코드 지우기</button>
                 </div>
 
                 <div class="feedback" id="feedback"></div>
 
-                <h3 style="margin-top: 20px; color: #667eea;">💡 예상 출력:</h3>
-                <div class="output-box" id="expected-output">정답을 확인하면 예상 출력이 표시됩니다...</div>
+                <h3 style="margin-top: 20px; color: #667eea;">💡 실행 결과:</h3>
+                <div class="output-box" id="output">코드를 실행하면 여기에 결과가 표시됩니다...</div>
+
+                <h3 style="margin-top: 20px; color: #667eea;">✅ 예상 출력:</h3>
+                <div class="output-box" id="expected-output">정답 확인 시 예상 출력이 표시됩니다...</div>
             </div>
         </div>
     </div>
 
-    <!-- 학생 정보 입력 모달 -->
-    <div class="overlay" id="name-overlay"></div>
-    <div class="name-input-modal" id="name-modal">
-        <h2>👋 환영합니다!</h2>
-        <p>학습을 시작하기 전에 정보를 입력해주세요.</p>
-        <input type="text" id="name-input" placeholder="이름을 입력하세요 (예: 김철수)">
-        <input type="text" id="id-input" placeholder="학번을 입력하세요 (예: 20241234)">
-        <button class="btn btn-primary" onclick="saveStudentInfo()">시작하기</button>
-    </div>
-
-    <div class="overlay" id="overlay" onclick="closeAchievement()"></div>
-    <div class="achievement-popup" id="achievement">
-        <div class="achievement-icon">🏆</div>
-        <h2 id="achievement-text">축하합니다!</h2>
-        <p id="achievement-desc"></p>
-        <button class="btn btn-primary" onclick="closeAchievement()">확인</button>
-    </div>
+    <!-- Pyodide 로드 -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
     <script>
-        // ⚠️ Firebase 설정 - 여기에 Firebase Console에서 받은 설정을 붙여넣으세요!
+        // Firebase 설정
         const firebaseConfig = {
-              apiKey: "AIzaSyBHOBXMqpBDsDIMONQqWZ83qxIxhU0VyG8",
-              authDomain: "python-learning-system.firebaseapp.com",
-              databaseURL: "https://python-learning-system-default-rtdb.asia-southeast1.firebasedatabase.app",
-              projectId: "python-learning-system",
-              storageBucket: "python-learning-system.firebasestorage.app",
-              messagingSenderId: "844754646343",
-              appId: "1:844754646343:web:da76658dae2e91d6468862",
-              measurementId: "G-9Q0JVVT0QB"
+            apiKey: "AIzaSyBHOBXMqpBDsDIMONQqWZ83qxIxhU0VyG8",
+       		authDomain: "python-learning-system.firebaseapp.com",
+       		databaseURL: "https://python-learning-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+       		projectId: "python-learning-system",
+       		storageBucket: "python-learning-system.firebasestorage.app",
+      		messagingSenderId: "844754646343",
+       		appId: "1:844754646343:web:da76658dae2e91d6468862"
         };
 
-        // Firebase 초기화
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // 문제 데이터베이스 (Firebase에서 로드됨)
+        // Pyodide 초기화
+        let pyodide = null;
+        let pythonReady = false;
+
+        async function initPython() {
+            try {
+                console.log('🔄 Pyodide 로딩 시작...');
+                pyodide = await loadPyodide();
+                
+                // 기본 패키지 로드
+                await pyodide.loadPackage(['numpy', 'pandas']);
+                
+                pythonReady = true;
+                console.log('✅ Python 실행 환경 준비 완료!');
+                
+                // 로딩 오버레이 숨기기
+                document.getElementById('loading-overlay').classList.add('hidden');
+                
+                // 첫 문제 로드
+                loadQuestionsFromFirebase();
+            } catch (error) {
+                console.error('❌ Python 초기화 오류:', error);
+                alert('Python 실행 환경을 로드하는데 실패했습니다. 페이지를 새로고침해주세요.');
+            }
+        }
+
+        // 문제 데이터
         let questions = {
             'datatypes': [],
             'numpy': [],
@@ -583,11 +525,10 @@
                     
                     if (!data) {
                         console.error('❌ Firebase에 문제 데이터가 없습니다!');
-                        alert('문제를 찾을 수 없습니다. 교수님께 문의하세요.');
+                        alert('문제를 찾을 수 없습니다. CSV 파일을 업로드해주세요.');
                         return;
                     }
                     
-                    // 카테고리별로 문제 정리
                     for (let category in data) {
                         if (!questions[category]) {
                             questions[category] = [];
@@ -597,7 +538,6 @@
                         for (let qId in categoryQuestions) {
                             const q = categoryQuestions[qId];
                             
-                            // enabled가 true인 문제만 포함
                             if (q.enabled !== false) {
                                 questions[category].push({
                                     id: q.id,
@@ -613,24 +553,13 @@
                             }
                         }
                         
-                        // order 순서대로 정렬
                         questions[category].sort((a, b) => a.order - b.order);
                     }
                     
                     questionsLoaded = true;
                     console.log('✅ 문제 로드 완료!');
-                    console.log('📊 로드된 문제 수:', {
-                        datatypes: questions.datatypes.length,
-                        numpy: questions.numpy.length,
-                        pandas: questions.pandas.length,
-                        data_loading: questions.data_loading.length,
-                        operations: questions.operations.length
-                    });
                     
-                    // 총 문제 수 재계산
                     gameState.totalQuestions = calculateTotalQuestions();
-                    
-                    // 첫 문제 로드
                     loadQuestion();
                     updateStats();
                 })
@@ -648,13 +577,9 @@
             solved: 0,
             streak: 0,
             level: 1,
-            totalQuestions: 0,
-            studentName: '',
-            studentId: '',
-            studentKey: ''
+            totalQuestions: 0
         };
 
-        // 총 문제 수 계산
         function calculateTotalQuestions() {
             let total = 0;
             for (let topic in questions) {
@@ -663,54 +588,108 @@
             return total;
         }
 
-        gameState.totalQuestions = calculateTotalQuestions();
+        // Python 코드 실행
+        async function runCode() {
+            if (!pythonReady) {
+                alert('Python 실행 환경이 아직 로딩 중입니다. 잠시 후 다시 시도해주세요.');
+                return;
+            }
 
-        // Firebase에 데이터 저장
-        function syncToFirebase() {
-            if (!gameState.studentKey) return;
+            const code = document.getElementById('code-input').value.trim();
+            const outputDiv = document.getElementById('output');
+            const runBtn = document.getElementById('run-btn');
+            
+            if (!code) {
+                alert('코드를 작성해주세요!');
+                return;
+            }
 
-            const syncStatus = document.getElementById('sync-status');
-            syncStatus.textContent = '⏳ 동기화 중...';
-            syncStatus.className = 'sync-status syncing';
-
-            const studentData = {
-                name: gameState.studentName,
-                studentId: gameState.studentId,
-                score: gameState.score,
-                solved: gameState.solved,
-                streak: gameState.streak,
-                level: gameState.level,
-                progress: (gameState.solved / gameState.totalQuestions) * 100,
-                lastActive: firebase.database.ServerValue.TIMESTAMP,
-                currentTopic: gameState.currentTopic,
-                currentQuestion: gameState.currentQuestion
-            };
-
-            database.ref('students/' + gameState.studentKey).set(studentData)
-                .then(() => {
-                    syncStatus.textContent = '✓ 동기화됨';
-                    syncStatus.className = 'sync-status synced';
-                })
-                .catch((error) => {
-                    console.error('Firebase sync error:', error);
-                    syncStatus.textContent = '⚠️ 동기화 실패';
+            try {
+                runBtn.disabled = true;
+                runBtn.textContent = '⏳ 실행 중...';
+                outputDiv.textContent = '실행 중...';
+                
+                // stdout 캡처를 위한 설정
+                let output = '';
+                pyodide.setStdout({
+                    batched: (msg) => { output += msg + '\n'; }
                 });
+
+                // 코드 실행
+                await pyodide.runPythonAsync(code);
+                
+                // 출력 결과 표시
+                outputDiv.textContent = output || '(출력 없음)';
+                outputDiv.style.color = '#4ec9b0';
+                
+                // 정답 확인
+                checkAnswer(output.trim());
+                
+            } catch (error) {
+                outputDiv.textContent = `❌ 오류:\n${error.message}`;
+                outputDiv.style.color = '#ff6b6b';
+                
+                const feedback = document.getElementById('feedback');
+                feedback.textContent = '❌ 코드 실행 중 오류가 발생했습니다. 문법을 확인해주세요!';
+                feedback.className = 'feedback error show';
+            } finally {
+                runBtn.disabled = false;
+                runBtn.textContent = '▶️ 실행 및 정답 확인';
+            }
         }
 
-        // 학습 활동 기록
-        function logActivity(activity, details) {
-            if (!gameState.studentKey) return;
-
-            const activityLog = {
-                studentKey: gameState.studentKey,
-                studentName: gameState.studentName,
-                studentId: gameState.studentId,
-                activity: activity,
-                details: details,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            };
-
-            database.ref('activities').push(activityLog);
+        // 정답 확인
+        function checkAnswer(actualOutput) {
+            const topic = gameState.currentTopic;
+            const qIndex = gameState.currentQuestion;
+            const q = questions[topic][qIndex];
+            
+            const expectedOutput = q.expectedOutput.trim();
+            
+            let points = 100;
+            if (q.difficulty === 'medium') points = 150;
+            if (q.difficulty === 'hard') points = 200;
+            
+            const feedback = document.getElementById('feedback');
+            const expectedOutputDiv = document.getElementById('expected-output');
+            
+            // 출력 비교 (공백 정규화)
+            const normalizedActual = actualOutput.replace(/\s+/g, ' ').trim();
+            const normalizedExpected = expectedOutput.replace(/\s+/g, ' ').trim();
+            
+            // 정답 판정
+            const isCorrect = normalizedActual === normalizedExpected || 
+                              actualOutput === expectedOutput ||
+                              // 부분 일치도 허용 (난수 등)
+                              (q.difficulty === 'medium' && normalizedActual.includes(normalizedExpected.substring(0, 10)));
+            
+            if (isCorrect) {
+                gameState.score += points;
+                gameState.solved++;
+                gameState.streak++;
+                
+                if (gameState.score >= gameState.level * 500) {
+                    gameState.level++;
+                }
+                
+                feedback.textContent = `✅ 정답입니다! +${points}점 (연속 ${gameState.streak}문제)`;
+                feedback.className = 'feedback success show';
+                expectedOutputDiv.textContent = `예상 출력:\n${expectedOutput}`;
+                expectedOutputDiv.style.color = '#4ec9b0';
+                
+                updateStats();
+                
+                setTimeout(nextQuestion, 3000);
+            } else {
+                gameState.streak = 0;
+                
+                feedback.textContent = `❌ 출력 결과가 다릅니다!\n\n실제 출력과 예상 출력을 비교해보세요.`;
+                feedback.className = 'feedback error show';
+                expectedOutputDiv.textContent = `예상 출력:\n${expectedOutput}`;
+                expectedOutputDiv.style.color = '#ff6b6b';
+                
+                updateStats();
+            }
         }
 
         // 통계 업데이트
@@ -724,318 +703,6 @@
             const progressBar = document.getElementById('progress');
             progressBar.style.width = progress + '%';
             progressBar.textContent = Math.round(progress) + '%';
-
-            // Firebase 동기화
-            syncToFirebase();
-        }
-
-        // 학생 정보 저장 (기존 데이터 로드 포함)
-        function saveStudentInfo() {
-            const name = document.getElementById('name-input').value.trim();
-            const id = document.getElementById('id-input').value.trim();
-            
-            if (!name || !id) {
-                alert('이름과 학번을 모두 입력해주세요!');
-                return;
-            }
-
-            const studentKey = id.replace(/[^a-zA-Z0-9]/g, '');
-            
-            // Firebase에서 기존 데이터 확인
-            database.ref('students/' + studentKey).once('value')
-                .then((snapshot) => {
-                    const existingData = snapshot.val();
-                    
-                    if (existingData) {
-                        // 기존 학생 - 마지막 접속 시간 확인
-                        const lastActive = existingData.lastActive || 0;
-                        const now = Date.now();
-                        const daysSinceLastVisit = (now - lastActive) / (1000 * 60 * 60 * 24);
-                        
-                        if (daysSinceLastVisit > 14) {
-                            // 2주 이상 미접속 - 데이터 초기화 옵션 제공
-                            if (confirm(`${name}님, 마지막 방문 후 ${Math.floor(daysSinceLastVisit)}일이 지났습니다.\n\n기존 학습 데이터를 유지하시겠습니까?\n\n확인: 데이터 유지 (이어서 학습)\n취소: 처음부터 시작`)) {
-                                // 기존 데이터 로드
-                                loadExistingData(existingData, name, id, studentKey);
-                            } else {
-                                // 새로 시작
-                                startFresh(name, id, studentKey);
-                            }
-                        } else {
-                            // 2주 이내 접속 - 자동으로 기존 데이터 로드
-                            loadExistingData(existingData, name, id, studentKey);
-                        }
-                    } else {
-                        // 신규 학생
-                        startFresh(name, id, studentKey);
-                    }
-                })
-                .catch((error) => {
-                    console.error('데이터 로드 오류:', error);
-                    // 오류 시 새로 시작
-                    startFresh(name, id, studentKey);
-                });
-        }
-
-        // 기존 데이터 로드
-        function loadExistingData(existingData, name, id, studentKey) {
-            gameState.studentName = name;
-            gameState.studentId = id;
-            gameState.studentKey = studentKey;
-            
-            // 기존 데이터 로드
-            gameState.score = existingData.score || 0;
-            gameState.solved = existingData.solved || 0;
-            gameState.streak = existingData.streak || 0;
-            gameState.level = existingData.level || 1;
-            gameState.maxStreak = existingData.maxStreak || 0;
-            gameState.failedAttempts = existingData.failedAttempts || 0;
-            gameState.completedQuestions = existingData.completedQuestions || [];
-            gameState.currentTopic = existingData.currentTopic || 'datatypes';
-            gameState.currentQuestion = existingData.currentQuestion || 0;
-            
-            // 총 방문 횟수 증가
-            gameState.totalVisits = (existingData.totalVisits || 0) + 1;
-            gameState.firstVisit = existingData.firstVisit || Date.now();
-            
-            updateStudentDisplay();
-            closeNameModal();
-            
-            // 통계 업데이트
-            updateStats();
-            
-            // Firebase에 저장
-            syncToFirebase();
-            logActivity('login', `Student returned. Total visits: ${gameState.totalVisits}, Days since last: ${Math.floor((Date.now() - (existingData.lastActive || 0)) / (1000 * 60 * 60 * 24))}`);
-            
-            // 환영 메시지
-            const daysSince = Math.floor((Date.now() - (existingData.lastActive || 0)) / (1000 * 60 * 60 * 24));
-            let welcomeMsg = `${name}님, 다시 오신 것을 환영합니다! 🎉\n\n`;
-            welcomeMsg += `📊 현재 진행 상황:\n`;
-            welcomeMsg += `• 총 점수: ${gameState.score}점\n`;
-            welcomeMsg += `• 해결한 문제: ${gameState.solved}개\n`;
-            welcomeMsg += `• 현재 레벨: Lv.${gameState.level}\n\n`;
-            
-            if (daysSince > 0) {
-                welcomeMsg += `마지막 방문 후 ${daysSince}일이 지났습니다.\n`;
-            }
-            welcomeMsg += `이어서 학습을 시작해볼까요? 💪`;
-            
-            showAchievement('다시 오신 것을 환영합니다! 👋', welcomeMsg);
-        }
-
-        // 새로 시작
-        function startFresh(name, id, studentKey) {
-            gameState.studentName = name;
-            gameState.studentId = id;
-            gameState.studentKey = studentKey;
-            
-            // 모든 값 초기화
-            gameState.score = 0;
-            gameState.solved = 0;
-            gameState.streak = 0;
-            gameState.level = 1;
-            gameState.maxStreak = 0;
-            gameState.failedAttempts = 0;
-            gameState.completedQuestions = [];
-            gameState.currentTopic = 'datatypes';
-            gameState.currentQuestion = 0;
-            gameState.totalVisits = 1;
-            gameState.firstVisit = Date.now();
-            
-            updateStudentDisplay();
-            closeNameModal();
-            
-            // 통계 업데이트
-            updateStats();
-            
-            // Firebase에 저장
-            syncToFirebase();
-            logActivity('login', 'New student registered');
-            
-            showAchievement('등록 완료! 🎉', `${name}님, 학습을 시작합니다!`);
-        }
-
-        // 학생 정보 표시 업데이트
-        function updateStudentDisplay() {
-            document.getElementById('student-name').textContent = gameState.studentName || '환영합니다!';
-            document.getElementById('student-id').textContent = gameState.studentId ? `학번: ${gameState.studentId}` : '학번: 미등록';
-        }
-
-        // 학습하기 (새로운 세션 시작)
-        function startNewSession() {
-            if (confirm('새로운 학습을 시작하시겠습니까?\n(현재 진행 중인 내용은 저장됩니다)')) {
-                document.getElementById('name-input').value = '';
-                document.getElementById('id-input').value = '';
-                document.getElementById('name-modal').classList.add('show');
-                document.getElementById('name-overlay').classList.add('show');
-            }
-        }
-
-        // 학생 정보 변경 (이전 함수 유지 - 호환성)
-        function changeStudentInfo() {
-            startNewSession();
-        }
-
-        // 학습 서머리 표시
-        function showSummary() {
-            if (!gameState.studentName) {
-                alert('학습 기록이 없습니다.');
-                return;
-            }
-
-            // 학습 데이터 수집
-            const totalAttempts = gameState.solved + gameState.failedAttempts || gameState.solved;
-            const successRate = totalAttempts > 0 ? Math.round((gameState.solved / totalAttempts) * 100) : 0;
-            
-            // 현재 진행 상황 저장
-            syncToFirebase();
-            
-            // 서머리 내용 생성
-            let summaryHTML = `
-                <div style="text-align: left; padding: 20px;">
-                    <h2 style="color: #667eea; text-align: center; margin-bottom: 20px;">📊 학습 완료!</h2>
-                    
-                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                        <h3 style="color: #333; margin-bottom: 10px;">👤 학습자 정보</h3>
-                        <p><strong>이름:</strong> ${gameState.studentName}</p>
-                        <p><strong>학번:</strong> ${gameState.studentId}</p>
-                    </div>
-
-                    <div style="background: #e7f3ff; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                        <h3 style="color: #333; margin-bottom: 10px;">📈 학습 성과</h3>
-                        <p><strong>총 점수:</strong> ${gameState.score}점</p>
-                        <p><strong>해결한 문제:</strong> ${gameState.solved}개 / ${gameState.totalQuestions}개</p>
-                        <p><strong>진행률:</strong> ${Math.round((gameState.solved / gameState.totalQuestions) * 100)}%</p>
-                        <p><strong>현재 레벨:</strong> Lv.${gameState.level}</p>
-                        <p><strong>최고 연속 정답:</strong> ${gameState.maxStreak || gameState.streak}회</p>
-                    </div>
-
-                    ${generateFeedback()}
-
-                    <div style="background: #fff3cd; padding: 15px; border-radius: 10px; margin-top: 15px;">
-                        <h3 style="color: #333; margin-bottom: 10px;">💡 다음 학습 추천</h3>
-                        ${getRecommendations()}
-                    </div>
-
-                    <p style="text-align: center; margin-top: 20px; color: #666;">
-                        학습 데이터는 자동으로 저장되었습니다.<br>
-                        언제든 다시 방문하여 이어서 학습할 수 있습니다! 🚀
-                    </p>
-                </div>
-            `;
-
-            // 서머리 표시
-            document.getElementById('achievement-text').innerHTML = '학습 완료 🎉';
-            document.getElementById('achievement-desc').innerHTML = summaryHTML;
-            document.getElementById('achievement').classList.add('show');
-            document.getElementById('overlay').classList.add('show');
-
-            // 활동 로그 기록
-            logActivity('session_end', `Score: ${gameState.score}, Solved: ${gameState.solved}, Progress: ${Math.round((gameState.solved / gameState.totalQuestions) * 100)}%`);
-        }
-
-        // 피드백 생성 (틀린 내용 중심)
-        function generateFeedback() {
-            const progress = (gameState.solved / gameState.totalQuestions) * 100;
-            const successRate = 100; // 실제로는 계산 필요
-            
-            let feedback = '<div style="background: #ffe8e8; padding: 15px; border-radius: 10px; margin-bottom: 15px;">';
-            feedback += '<h3 style="color: #d32f2f; margin-bottom: 10px;">⚠️ 보완이 필요한 부분</h3>';
-            
-            if (progress < 30) {
-                feedback += '<p>• <strong>학습 진행률이 낮습니다.</strong> 꾸준히 문제를 풀어보세요!</p>';
-            }
-            
-            if (gameState.level < 2) {
-                feedback += '<p>• <strong>기초 개념 강화가 필요합니다.</strong> 자료형과 기본 연산을 복습하세요.</p>';
-            }
-            
-            if (gameState.streak < 3) {
-                feedback += '<p>• <strong>문제 해결 정확도를 높여보세요.</strong> 힌트를 적극 활용하세요!</p>';
-            }
-            
-            if (gameState.currentTopic === 'datatypes' && gameState.solved < 5) {
-                feedback += '<p>• <strong>자료형 학습:</strong> Python의 기본 자료형(int, str, list)을 더 연습하세요.</p>';
-            }
-            
-            if (gameState.currentTopic === 'numpy' || gameState.currentTopic === 'pandas') {
-                feedback += '<p>• <strong>라이브러리 활용:</strong> numpy와 pandas 문법을 복습하세요.</p>';
-            }
-            
-            // 잘한 점도 추가
-            if (progress >= 50 || gameState.level >= 3) {
-                feedback += '</div><div style="background: #d4edda; padding: 15px; border-radius: 10px; margin-bottom: 15px;">';
-                feedback += '<h3 style="color: #155724; margin-bottom: 10px;">✅ 잘하고 있는 점</h3>';
-                
-                if (progress >= 50) {
-                    feedback += '<p>• 학습 진행률이 우수합니다! 계속 이대로 진행하세요! 👍</p>';
-                }
-                
-                if (gameState.level >= 3) {
-                    feedback += '<p>• 레벨업 달성! 실력이 향상되고 있습니다! 🎉</p>';
-                }
-                
-                if (gameState.streak >= 5) {
-                    feedback += '<p>• 연속 정답 기록이 훌륭합니다! 집중력이 뛰어나네요! 🔥</p>';
-                }
-            }
-            
-            feedback += '</div>';
-            return feedback;
-        }
-
-        // 추천 사항 생성
-        function getRecommendations() {
-            const progress = (gameState.solved / gameState.totalQuestions) * 100;
-            let recommendations = '<ul style="margin-left: 20px;">';
-            
-            if (progress < 30) {
-                recommendations += '<li>목표: 진행률 50% 달성하기</li>';
-                recommendations += '<li>매일 5개 문제씩 풀기</li>';
-            } else if (progress < 70) {
-                recommendations += '<li>목표: 진행률 80% 달성하기</li>';
-                recommendations += '<li>어려운 문제에 도전해보기</li>';
-            } else {
-                recommendations += '<li>목표: 전체 문제 완료하기</li>';
-                recommendations += '<li>복습을 통해 개념 확실히 하기</li>';
-            }
-            
-            if (gameState.level < 3) {
-                recommendations += '<li>레벨 3 달성을 목표로!</li>';
-            }
-            
-            recommendations += '<li>다음 학습 주제: ';
-            if (gameState.currentTopic === 'datatypes') {
-                recommendations += 'Numpy 배열 다루기';
-            } else if (gameState.currentTopic === 'numpy') {
-                recommendations += 'Pandas 데이터프레임';
-            } else if (gameState.currentTopic === 'pandas') {
-                recommendations += '데이터 불러오기';
-            } else {
-                recommendations += '처음부터 복습하기';
-            }
-            recommendations += '</li>';
-            
-            recommendations += '</ul>';
-            return recommendations;
-        }
-
-        // 최대 연속 정답 기록
-        if (!gameState.maxStreak) {
-            gameState.maxStreak = 0;
-        }
-
-        // 이름 모달 닫기
-        function closeNameModal() {
-            document.getElementById('name-modal').classList.remove('show');
-            document.getElementById('name-overlay').classList.remove('show');
-        }
-
-        // 이름 모달 표시
-        function showNameModal() {
-            document.getElementById('name-modal').classList.add('show');
-            document.getElementById('name-overlay').classList.add('show');
         }
 
         // 주제 로드
@@ -1050,25 +717,20 @@
             event.target.classList.add('active');
             
             loadQuestion();
-            logActivity('topic_change', `Changed to ${topic}`);
         }
 
         // 문제 로드
         function loadQuestion() {
-            // 문제가 아직 로드되지 않았으면 대기
             if (!questionsLoaded) {
-                console.log('⏳ 문제 로딩 대기 중...');
-                document.getElementById('question').innerHTML = '문제를 로딩 중입니다... 잠시만 기다려주세요! 🔄';
+                document.getElementById('question').innerHTML = '문제를 로딩 중입니다...';
                 return;
             }
             
             const topic = gameState.currentTopic;
             const qIndex = gameState.currentQuestion;
             
-            // 해당 주제에 문제가 없으면
             if (!questions[topic] || questions[topic].length === 0) {
-                document.getElementById('question').innerHTML = `⚠️ "${topic}" 주제에 아직 문제가 없습니다. 교수님께 문의하세요.`;
-                document.getElementById('example-code').textContent = '';
+                document.getElementById('question').innerHTML = `⚠️ "${topic}" 주제에 문제가 없습니다.`;
                 return;
             }
             
@@ -1087,15 +749,15 @@
             document.getElementById('hint').textContent = q.hint;
             document.getElementById('hint').classList.remove('show');
             document.getElementById('feedback').classList.remove('show');
-            document.getElementById('expected-output').textContent = '정답을 확인하면 예상 출력이 표시됩니다...';
-            
-            syncToFirebase();
+            document.getElementById('output').textContent = '코드를 실행하면 여기에 결과가 표시됩니다...';
+            document.getElementById('output').style.color = '#4ec9b0';
+            document.getElementById('expected-output').textContent = '정답 확인 시 예상 출력이 표시됩니다...';
+            document.getElementById('expected-output').style.color = '#4ec9b0';
         }
 
         // 힌트 표시
         function showHint() {
             document.getElementById('hint').classList.add('show');
-            logActivity('hint_used', `Topic: ${gameState.currentTopic}, Question: ${gameState.currentQuestion}`);
         }
 
         // 다음 문제
@@ -1111,101 +773,9 @@
             }
         }
 
-        // 정답 확인
-        function checkAnswer() {
-            const code = document.getElementById('code-input').value.trim();
-            
-            if (!code) {
-                alert('코드를 작성해주세요!');
-                return;
-            }
-            
-            const topic = gameState.currentTopic;
-            const qIndex = gameState.currentQuestion;
-            const q = questions[topic][qIndex];
-            
-            let keywordsFound = 0;
-            q.keywords.forEach(keyword => {
-                if (code.includes(keyword)) {
-                    keywordsFound++;
-                }
-            });
-            
-            const keywordRatio = keywordsFound / q.keywords.length;
-            
-            let points = 100;
-            if (q.difficulty === 'medium') points = 150;
-            if (q.difficulty === 'hard') points = 200;
-            
-            const feedback = document.getElementById('feedback');
-            const expectedOutput = document.getElementById('expected-output');
-            
-            if (keywordRatio >= 0.7) {
-                gameState.score += points;
-                gameState.solved++;
-                gameState.streak++;
-                
-                // 최고 연속 정답 기록 업데이트
-                if (!gameState.maxStreak) gameState.maxStreak = 0;
-                if (gameState.streak > gameState.maxStreak) {
-                    gameState.maxStreak = gameState.streak;
-                }
-                
-                if (gameState.score >= gameState.level * 500) {
-                    gameState.level++;
-                    showAchievement('레벨업! 🎉', `레벨 ${gameState.level}에 도달했습니다!`);
-                }
-                
-                feedback.textContent = `✅ 정답입니다! +${points}점 (연속 ${gameState.streak}문제)`;
-                feedback.className = 'feedback success show';
-                expectedOutput.textContent = `예상 출력:\n${q.expectedOutput}`;
-                expectedOutput.style.color = '#4ec9b0';
-                
-                updateStats();
-                logActivity('question_solved', `Topic: ${topic}, Question: ${qIndex}, Points: ${points}`);
-                
-                setTimeout(nextQuestion, 3000);
-            } else {
-                gameState.streak = 0;
-                // 실패 횟수 추적
-                if (!gameState.failedAttempts) gameState.failedAttempts = 0;
-                gameState.failedAttempts++;
-                
-                feedback.textContent = `❌ 다시 시도해보세요! 필요한 코드: ${Math.round(keywordRatio * 100)}% / 70%\n💡 힌트 버튼을 눌러보세요!`;
-                feedback.className = 'feedback error show';
-                
-                updateStats();
-                logActivity('question_failed', `Topic: ${topic}, Question: ${qIndex}`);
-            }
-        }
-
-        // 성취 팝업 표시
-        function showAchievement(title, desc) {
-            document.getElementById('achievement-text').textContent = title;
-            document.getElementById('achievement-desc').textContent = desc;
-            document.getElementById('achievement').classList.add('show');
-            document.getElementById('overlay').classList.add('show');
-        }
-
-        // 성취 팝업 닫기
-        function closeAchievement() {
-            document.getElementById('achievement').classList.remove('show');
-            document.getElementById('overlay').classList.remove('show');
-        }
-
         // 초기화
         window.onload = function() {
-            // Firebase 연결 확인
-            console.log('🚀 앱 시작...');
-            console.log('🔗 Firebase 설정:', firebaseConfig.projectId);
-            
-            // Firebase에서 문제 로드
-            loadQuestionsFromFirebase();
-            
-            // 잠시 후 이름 모달 표시
-            setTimeout(() => {
-                showNameModal();
-            }, 500);
+            initPython();
         };
     </script>
 </body>
