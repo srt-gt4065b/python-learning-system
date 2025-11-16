@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>문제 관리 시스템 - 교수 전용</title>
+    <title>문제 관리 시스템 - 교수 전용 (일괄 삭제 기능)</title>
     <style>
         * {
             margin: 0;
@@ -64,6 +64,11 @@
             color: white;
         }
 
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
@@ -72,6 +77,7 @@
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            transform: none;
         }
 
         .panel {
@@ -88,6 +94,56 @@
             font-size: 1.8em;
         }
 
+        /* 일괄 선택 도구 바 */
+        .bulk-actions-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .bulk-actions-bar .selection-info {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .bulk-actions-bar .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .bulk-btn {
+            padding: 8px 20px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .bulk-btn:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        .bulk-btn-danger {
+            border-color: #ff4444;
+            background: #ff4444;
+        }
+
+        .bulk-btn-danger:hover {
+            background: #cc0000;
+            border-color: #cc0000;
+            color: white;
+        }
+
         .questions-grid {
             display: grid;
             gap: 20px;
@@ -99,6 +155,13 @@
             border-radius: 15px;
             border-left: 5px solid #667eea;
             position: relative;
+            transition: all 0.3s;
+        }
+
+        .question-card.selected {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
         }
 
         .question-card.disabled {
@@ -111,6 +174,18 @@
             justify-content: space-between;
             align-items: start;
             margin-bottom: 15px;
+        }
+
+        .question-header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .question-checkbox {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
         }
 
         .question-id {
@@ -155,6 +230,7 @@
             font-size: 1.1em;
             color: #333;
             margin-bottom: 10px;
+            margin-left: 39px; /* 체크박스 공간만큼 */
         }
 
         .question-meta {
@@ -162,6 +238,7 @@
             gap: 15px;
             flex-wrap: wrap;
             margin-top: 10px;
+            margin-left: 39px; /* 체크박스 공간만큼 */
         }
 
         .meta-badge {
@@ -190,77 +267,52 @@
             color: #004085;
         }
 
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            overflow-y: auto;
-        }
-
-        .modal.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            max-width: 800px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .form-group {
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
             margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
             font-weight: bold;
-            color: #333;
+            display: none;
+            animation: slideIn 0.3s;
         }
 
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1em;
-            font-family: inherit;
+        .alert.show {
+            display: block;
         }
 
-        .form-group textarea {
-            min-height: 100px;
-            resize: vertical;
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
         }
 
-        .form-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 20px;
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
         }
 
-        .tabs {
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .category-tabs {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
-        .tab {
-            padding: 12px 25px;
-            background: #f8f9fa;
+        .category-tab {
+            padding: 10px 20px;
+            background: #e9ecef;
             border: none;
             border-radius: 10px;
             cursor: pointer;
@@ -269,295 +321,115 @@
             transition: all 0.3s;
         }
 
-        .tab.active {
+        .category-tab.active {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
 
-        .keyword-input {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
+        .category-tab:hover {
+            transform: translateY(-2px);
         }
 
-        .keyword-tag {
-            display: inline-block;
-            background: #667eea;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            margin: 5px;
-        }
-
-        .keyword-tag button {
-            background: none;
-            border: none;
-            color: white;
-            margin-left: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-            font-size: 1.2em;
-        }
-
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+        .confirm-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
             display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
         }
 
-        .success-message.show {
-            display: block;
+        .confirm-dialog.show {
+            display: flex;
         }
 
-        .filter-controls {
+        .confirm-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .confirm-content h3 {
+            color: #dc3545;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+
+        .confirm-content p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .confirm-buttons {
             display: flex;
             gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .filter-controls select {
-            padding: 10px;
-            border: 2px solid #667eea;
-            border-radius: 8px;
-            font-size: 1em;
-        }
-
-        .upload-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-        }
-
-        .upload-btn {
-            background: #667eea;
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: bold;
+            justify-content: center;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div>
-                <h1>📝 문제 관리 시스템</h1>
-                <p>실시간 문제 추가/수정/삭제</p>
-            </div>
-            <div>
-                <button class="btn btn-success" onclick="showAddModal()">➕ 새 문제 추가</button>
-                <button class="btn btn-primary" onclick="showCsvUploadModal()" style="margin-left: 10px;">📊 CSV 일괄 업로드</button>
-                <button class="btn btn-primary" onclick="downloadTemplate()" style="margin-left: 10px;">📥 템플릿 다운로드</button>
+            <h1>📚 문제 관리 시스템</h1>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-success" onclick="openCsvModal()">📂 CSV로 일괄 업로드</button>
+                <button class="btn btn-primary" onclick="openAddModal()">➕ 문제 추가</button>
             </div>
         </div>
 
-        <div id="success-message" class="success-message"></div>
+        <!-- 알림 메시지 -->
+        <div id="success-message" class="alert alert-success"></div>
+        <div id="error-message" class="alert alert-danger"></div>
 
         <div class="panel">
-            <h2>📚 문제 목록</h2>
-            
-            <div class="filter-controls">
-                <select id="category-filter" onchange="filterQuestions()">
-                    <option value="">전체 주제</option>
-                    <option value="datatypes">자료형</option>
-                    <option value="numpy">Numpy</option>
-                    <option value="pandas">Pandas</option>
-                    <option value="data_loading">데이터 불러오기</option>
-                    <option value="operations">연산</option>
-                </select>
-                
-                <select id="difficulty-filter" onchange="filterQuestions()">
-                    <option value="">전체 난이도</option>
-                    <option value="easy">쉬움</option>
-                    <option value="medium">보통</option>
-                    <option value="hard">어려움</option>
-                </select>
+            <h2>문제 목록</h2>
 
-                <select id="status-filter" onchange="filterQuestions()">
-                    <option value="">전체 상태</option>
-                    <option value="enabled">활성화</option>
-                    <option value="disabled">비활성화</option>
-                </select>
+            <!-- 카테고리 탭 -->
+            <div class="category-tabs">
+                <button class="category-tab active" onclick="filterByCategory('all')">전체</button>
+                <button class="category-tab" onclick="filterByCategory('datatypes')">자료형</button>
+                <button class="category-tab" onclick="filterByCategory('numpy')">Numpy</button>
+                <button class="category-tab" onclick="filterByCategory('pandas')">Pandas</button>
+                <button class="category-tab" onclick="filterByCategory('data_loading')">데이터 불러오기</button>
+                <button class="category-tab" onclick="filterByCategory('operations')">연산</button>
             </div>
 
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('all')">전체</button>
-                <button class="tab" onclick="switchTab('datatypes')">자료형</button>
-                <button class="tab" onclick="switchTab('numpy')">Numpy</button>
-                <button class="tab" onclick="switchTab('pandas')">Pandas</button>
-                <button class="tab" onclick="switchTab('data_loading')">데이터 불러오기</button>
-                <button class="tab" onclick="switchTab('operations')">연산</button>
+            <!-- 일괄 선택 도구 바 -->
+            <div class="bulk-actions-bar">
+                <div class="selection-info">
+                    <span id="selected-count">0</span>개 문제 선택됨
+                </div>
+                <div class="actions">
+                    <button class="bulk-btn" onclick="selectAll()">✅ 전체 선택</button>
+                    <button class="bulk-btn" onclick="deselectAll()">❌ 선택 해제</button>
+                    <button class="bulk-btn bulk-btn-danger" onclick="confirmBulkDelete()">🗑️ 선택 삭제</button>
+                </div>
             </div>
 
-            <div id="questions-list">
-                <div class="loading">문제를 불러오는 중...</div>
+            <!-- 문제 카드 목록 -->
+            <div class="questions-grid" id="questions-list">
+                <p style="text-align: center; color: #666; padding: 40px;">
+                    Firebase에서 문제를 불러오는 중...
+                </p>
             </div>
         </div>
     </div>
 
-    <!-- 문제 추가/수정 모달 -->
-    <div id="question-modal" class="modal">
-        <div class="modal-content">
-            <h2 id="modal-title">새 문제 추가</h2>
-            
-            <form id="question-form">
-                <input type="hidden" id="edit-question-id">
-                
-                <div class="form-group">
-                    <label>주제 *</label>
-                    <select id="question-category" required>
-                        <option value="datatypes">자료형</option>
-                        <option value="numpy">Numpy</option>
-                        <option value="pandas">Pandas</option>
-                        <option value="data_loading">데이터 불러오기</option>
-                        <option value="operations">연산</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>문제 *</label>
-                    <textarea id="question-text" required placeholder="문제를 입력하세요..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>예제 코드</label>
-                    <textarea id="question-example" placeholder="예제 코드를 입력하세요..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>힌트</label>
-                    <textarea id="question-hint" placeholder="힌트를 입력하세요..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>예상 출력 *</label>
-                    <input type="text" id="question-output" required placeholder="예상 출력을 입력하세요...">
-                </div>
-
-                <div class="form-group">
-                    <label>난이도 *</label>
-                    <select id="question-difficulty" required>
-                        <option value="easy">쉬움 (100점)</option>
-                        <option value="medium">보통 (150점)</option>
-                        <option value="hard">어려움 (200점)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>키워드 (쉼표로 구분)</label>
-                    <input type="text" id="question-keywords" placeholder="예: print, type, variable">
-                    <div id="keywords-display"></div>
-                </div>
-
-                <div class="form-group">
-                    <label>순서</label>
-                    <input type="number" id="question-order" value="1" min="1">
-                </div>
-
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="question-enabled" checked>
-                        활성화
-                    </label>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn btn-danger" onclick="closeModal()">취소</button>
-                    <button type="submit" class="btn btn-success">저장</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- CSV 업로드 모달 -->
-    <div class="modal" id="csv-modal">
-        <div class="modal-content" style="max-width: 800px;">
-            <h2>📊 CSV 일괄 업로드</h2>
-            <p style="margin-bottom: 20px; color: #666;">
-                엑셀에서 작성한 문제를 CSV 파일로 저장하여 한 번에 업로드하세요!
-            </p>
-
-            <div style="background: #fff3cd; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-                <h3 style="color: #856404; margin-bottom: 10px;">📋 CSV 형식 안내</h3>
-                <p style="color: #856404; margin-bottom: 10px;">
-                    다음 순서대로 컬럼을 작성하세요:
-                </p>
-                <ol style="color: #856404; margin-left: 20px;">
-                    <li><strong>category</strong> - 카테고리 (datatypes, numpy, pandas, data_loading, operations)</li>
-                    <li><strong>question</strong> - 문제 내용</li>
-                    <li><strong>example</strong> - 예제 코드 (줄바꿈은 \n으로)</li>
-                    <li><strong>hint</strong> - 힌트</li>
-                    <li><strong>expectedOutput</strong> - 예상 출력</li>
-                    <li><strong>keywords</strong> - 키워드 (쉼표로 구분)</li>
-                    <li><strong>difficulty</strong> - 난이도 (easy, medium, hard)</li>
-                    <li><strong>order</strong> - 순서 (숫자)</li>
-                </ol>
-                <p style="color: #856404; margin-top: 10px;">
-                    💡 <strong>팁:</strong> [📥 템플릿 다운로드] 버튼으로 예제 파일을 받으세요!
-                </p>
-            </div>
-
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 10px; font-weight: bold;">
-                    CSV 파일 선택:
-                </label>
-                <input type="file" id="csv-file-input" accept=".csv" style="
-                    width: 100%;
-                    padding: 10px;
-                    border: 2px dashed #667eea;
-                    border-radius: 10px;
-                    background: #f8f9fa;
-                    cursor: pointer;
-                ">
-            </div>
-
-            <div id="csv-preview" style="display: none; margin-bottom: 20px;">
-                <h3 style="color: #667eea; margin-bottom: 10px;">미리보기</h3>
-                <div id="csv-preview-content" style="
-                    max-height: 300px;
-                    overflow-y: auto;
-                    background: #f8f9fa;
-                    padding: 15px;
-                    border-radius: 10px;
-                    font-family: monospace;
-                    font-size: 0.9em;
-                "></div>
-            </div>
-
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button class="btn btn-success" onclick="processCsvUpload()" id="upload-csv-btn" disabled>
-                    📤 업로드 시작
-                </button>
-                <button class="btn btn-danger" onclick="closeCsvModal()">
-                    취소
-                </button>
-            </div>
-
-            <div id="csv-upload-progress" style="display: none; margin-top: 20px;">
-                <div style="background: #e7f3ff; padding: 15px; border-radius: 10px;">
-                    <p id="csv-progress-text" style="margin-bottom: 10px;">업로드 중...</p>
-                    <div style="background: #ddd; height: 20px; border-radius: 10px; overflow: hidden;">
-                        <div id="csv-progress-bar" style="
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            height: 100%;
-                            width: 0%;
-                            transition: width 0.3s;
-                        "></div>
-                    </div>
-                </div>
+    <!-- 삭제 확인 다이얼로그 -->
+    <div id="confirm-dialog" class="confirm-dialog">
+        <div class="confirm-content">
+            <h3>⚠️ 정말 삭제하시겠습니까?</h3>
+            <p id="confirm-message">선택한 문제들을 삭제하시겠습니까?<br>이 작업은 되돌릴 수 없습니다!</p>
+            <div class="confirm-buttons">
+                <button class="btn btn-danger" onclick="executeBulkDelete()">삭제</button>
+                <button class="btn btn-primary" onclick="closeConfirmDialog()">취소</button>
             </div>
         </div>
     </div>
@@ -567,9 +439,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
     <script>
-        // ⚠️ Firebase 설정 - 다른 파일들과 동일한 설정 사용
+        // Firebase 설정
         const firebaseConfig = {
-            	apiKey: "AIzaSyBHOBXMqpBDsDIMONQqWZ83qxIxhU0VyG8",
+            apiKey: "AIzaSyBHOBXMqpBDsDIMONQqWZ83qxIxhU0VyG8",
        		authDomain: "python-learning-system.firebaseapp.com",
        		databaseURL: "https://python-learning-system-default-rtdb.asia-southeast1.firebasedatabase.app",
        		projectId: "python-learning-system",
@@ -581,132 +453,157 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        let allQuestions = {};
+        let allQuestions = [];
         let currentCategory = 'all';
+        let selectedQuestions = new Set();
 
-        // 기존 문제 데이터 (일괄 업로드용)
-        const existingQuestions = {
-            'datatypes': [
-                {
-                    question: '정수형 변수 x에 100을 할당하고, 변수의 타입을 출력하세요.',
-                    example: 'x = 10\nprint(type(x))  # <class \'int\'>',
-                    hint: 'type() 함수를 사용하여 변수의 타입을 확인할 수 있습니다.',
-                    expectedOutput: "<class 'int'>",
-                    keywords: ['x', '=', '100', 'print', 'type', '(x)'],
-                    difficulty: 'easy'
-                },
-                {
-                    question: '리스트 [1, 2, 3, 4, 5]를 생성하고, 리스트의 길이를 출력하세요.',
-                    example: 'my_list = [10, 20, 30]\nprint(len(my_list))  # 3',
-                    hint: 'len() 함수를 사용하여 리스트의 길이를 구할 수 있습니다.',
-                    expectedOutput: '5',
-                    keywords: ['[', '1', '2', '3', '4', '5', ']', 'len', 'print'],
-                    difficulty: 'easy'
-                }
-            ],
-            'numpy': [
-                {
-                    question: 'numpy를 import하고, [1, 2, 3, 4, 5]로 배열을 생성한 후 배열의 합을 출력하세요.',
-                    example: 'import numpy as np\narr = np.array([10, 20, 30])\nprint(np.sum(arr))  # 60',
-                    hint: 'np.sum() 함수를 사용하여 배열의 합을 구할 수 있습니다.',
-                    expectedOutput: '15',
-                    keywords: ['import', 'numpy', 'np', 'array', 'sum', 'print'],
-                    difficulty: 'medium'
-                }
-            ],
-            'pandas': [
-                {
-                    question: 'pandas를 import하고, [10, 20, 30]으로 Series를 생성한 후 출력하세요.',
-                    example: 'import pandas as pd\ns = pd.Series([1, 2, 3])\nprint(s)',
-                    hint: 'pd.Series()를 사용하여 시리즈를 생성할 수 있습니다.',
-                    expectedOutput: '0    10\n1    20\n2    30',
-                    keywords: ['import', 'pandas', 'pd', 'Series', '[10, 20, 30]', 'print'],
-                    difficulty: 'medium'
-                }
-            ],
-            'data_loading': [
-                {
-                    question: 'pandas를 import하고, CSV 파일 "data.csv"를 읽어서 df 변수에 저장한 후, 상위 5개 행을 출력하세요.',
-                    example: 'import pandas as pd\ndf = pd.read_csv("file.csv")\nprint(df.head())',
-                    hint: 'pd.read_csv()로 CSV 파일을 읽고, .head()로 상위 행을 확인할 수 있습니다.',
-                    expectedOutput: 'DataFrame의 상위 5개 행',
-                    keywords: ['import', 'pandas', 'pd', 'read_csv', 'data.csv', 'df', 'head', 'print'],
-                    difficulty: 'medium'
-                }
-            ],
-            'operations': [
-                {
-                    question: '5 + 3 * 2의 결과를 출력하세요.',
-                    example: 'print(2 + 3)  # 5',
-                    hint: '연산자 우선순위를 고려하세요. 곱셈이 먼저 계산됩니다.',
-                    expectedOutput: '11',
-                    keywords: ['5', '+', '3', '*', '2', 'print'],
-                    difficulty: 'easy'
-                }
-            ]
+        // 페이지 로드 시 문제 불러오기
+        window.onload = function() {
+            loadAllQuestions();
         };
 
-        // 실시간 문제 로드
-        database.ref('questions').on('value', (snapshot) => {
-            allQuestions = snapshot.val() || {};
-            displayQuestions();
-        });
+        // 모든 문제 불러오기
+        function loadAllQuestions() {
+            database.ref('questions').once('value')
+                .then((snapshot) => {
+                    const data = snapshot.val();
+                    allQuestions = [];
+                    
+                    if (!data) {
+                        document.getElementById('questions-list').innerHTML = 
+                            '<p style="text-align: center; color: #666; padding: 40px;">등록된 문제가 없습니다.</p>';
+                        return;
+                    }
+                    
+                    for (let category in data) {
+                        for (let qId in data[category]) {
+                            allQuestions.push({
+                                ...data[category][qId],
+                                category: category,
+                                qId: qId
+                            });
+                        }
+                    }
+                    
+                    displayQuestions();
+                })
+                .catch((error) => {
+                    console.error('문제 불러오기 오류:', error);
+                    showError('문제를 불러오는 중 오류가 발생했습니다.');
+                });
+        }
 
         // 문제 표시
         function displayQuestions() {
-            const container = document.getElementById('questions-list');
+            let questions = allQuestions;
             
-            if (Object.keys(allQuestions).length === 0) {
-                container.innerHTML = '<div class="loading">등록된 문제가 없습니다.</div>';
+            if (currentCategory !== 'all') {
+                questions = allQuestions.filter(q => q.category === currentCategory);
+            }
+            
+            if (questions.length === 0) {
+                document.getElementById('questions-list').innerHTML = 
+                    '<p style="text-align: center; color: #666; padding: 40px;">이 카테고리에 문제가 없습니다.</p>';
                 return;
             }
-
-            let html = '<div class="questions-grid">';
-
-            Object.keys(allQuestions).forEach(category => {
-                if (currentCategory !== 'all' && currentCategory !== category) return;
-
-                Object.keys(allQuestions[category]).forEach(qId => {
-                    const q = allQuestions[category][qId];
-                    const difficultyClass = `difficulty-${q.difficulty}`;
-                    const disabledClass = q.enabled ? '' : 'disabled';
-                    const points = q.points || (q.difficulty === 'easy' ? 100 : q.difficulty === 'medium' ? 150 : 200);
-
-                    html += `
-                        <div class="question-card ${disabledClass}">
-                            <div class="question-header">
-                                <span class="question-id">${qId}</span>
-                                <div class="question-actions">
-                                    <button class="action-btn toggle-btn" onclick="toggleQuestion('${category}', '${qId}')">
-                                        ${q.enabled ? '비활성화' : '활성화'}
-                                    </button>
-                                    <button class="action-btn edit-btn" onclick="editQuestion('${category}', '${qId}')">수정</button>
-                                    <button class="action-btn delete-btn" onclick="deleteQuestion('${category}', '${qId}')">삭제</button>
-                                </div>
+            
+            let html = '';
+            questions.forEach(q => {
+                const isSelected = selectedQuestions.has(q.qId);
+                const selectedClass = isSelected ? 'selected' : '';
+                const disabledClass = q.enabled === false ? 'disabled' : '';
+                
+                html += `
+                    <div class="question-card ${selectedClass} ${disabledClass}" id="card-${q.qId}">
+                        <div class="question-header">
+                            <div class="question-header-left">
+                                <input type="checkbox" 
+                                       class="question-checkbox" 
+                                       id="check-${q.qId}"
+                                       ${isSelected ? 'checked' : ''}
+                                       onchange="toggleQuestion('${q.qId}')">
+                                <span class="question-id">${q.id || q.qId}</span>
                             </div>
-                            <div class="question-text">${q.question}</div>
-                            <div class="question-meta">
-                                <span class="meta-badge ${difficultyClass}">
-                                    ${q.difficulty === 'easy' ? '쉬움' : q.difficulty === 'medium' ? '보통' : '어려움'}
-                                </span>
-                                <span class="meta-badge stats-badge">${points}점</span>
-                                <span class="meta-badge stats-badge">순서: ${q.order}</span>
-                                <span class="meta-badge stats-badge">${category}</span>
+                            <div class="question-actions">
+                                <button class="action-btn toggle-btn" onclick="toggleQuestionStatus('${q.category}', '${q.qId}')">
+                                    ${q.enabled === false ? '활성화' : '비활성화'}
+                                </button>
+                                <button class="action-btn delete-btn" onclick="confirmSingleDelete('${q.category}', '${q.qId}')">삭제</button>
                             </div>
                         </div>
-                    `;
-                });
+                        <div class="question-text">${escapeHtml(q.question).substring(0, 150)}${q.question.length > 150 ? '...' : ''}</div>
+                        <div class="question-meta">
+                            <span class="meta-badge difficulty-${q.difficulty}">${getDifficultyText(q.difficulty)}</span>
+                            <span class="meta-badge stats-badge">카테고리: ${q.category}</span>
+                            <span class="meta-badge stats-badge">순서: ${q.order}</span>
+                            <span class="meta-badge stats-badge">배점: ${q.points}점</span>
+                        </div>
+                    </div>
+                `;
             });
-
-            html += '</div>';
-            container.innerHTML = html;
+            
+            document.getElementById('questions-list').innerHTML = html;
+            updateSelectedCount();
         }
 
-        // 탭 전환
-        function switchTab(category) {
+        // 문제 선택 토글
+        function toggleQuestion(qId) {
+            if (selectedQuestions.has(qId)) {
+                selectedQuestions.delete(qId);
+            } else {
+                selectedQuestions.add(qId);
+            }
+            
+            updateQuestionCardStyle(qId);
+            updateSelectedCount();
+        }
+
+        // 문제 카드 스타일 업데이트
+        function updateQuestionCardStyle(qId) {
+            const card = document.getElementById(`card-${qId}`);
+            const checkbox = document.getElementById(`check-${qId}`);
+            
+            if (selectedQuestions.has(qId)) {
+                card.classList.add('selected');
+                checkbox.checked = true;
+            } else {
+                card.classList.remove('selected');
+                checkbox.checked = false;
+            }
+        }
+
+        // 선택된 문제 수 업데이트
+        function updateSelectedCount() {
+            document.getElementById('selected-count').textContent = selectedQuestions.size;
+        }
+
+        // 전체 선택
+        function selectAll() {
+            let questions = allQuestions;
+            if (currentCategory !== 'all') {
+                questions = allQuestions.filter(q => q.category === currentCategory);
+            }
+            
+            selectedQuestions.clear();
+            questions.forEach(q => {
+                selectedQuestions.add(q.qId);
+            });
+            
+            displayQuestions();
+        }
+
+        // 선택 해제
+        function deselectAll() {
+            selectedQuestions.clear();
+            displayQuestions();
+        }
+
+        // 카테고리 필터
+        function filterByCategory(category) {
             currentCategory = category;
             
-            document.querySelectorAll('.tab').forEach(tab => {
+            // 탭 활성화 상태 변경
+            document.querySelectorAll('.category-tab').forEach(tab => {
                 tab.classList.remove('active');
             });
             event.target.classList.add('active');
@@ -714,387 +611,118 @@
             displayQuestions();
         }
 
-        // 필터링
-        function filterQuestions() {
-            // 구현 생략 (간단히 탭 사용)
-            displayQuestions();
-        }
-
-        // 모달 표시
-        function showAddModal() {
-            document.getElementById('modal-title').textContent = '새 문제 추가';
-            document.getElementById('question-form').reset();
-            document.getElementById('edit-question-id').value = '';
-            document.getElementById('question-modal').classList.add('show');
-        }
-
-        // 모달 닫기
-        function closeModal() {
-            document.getElementById('question-modal').classList.remove('show');
-        }
-
-        // 문제 저장
-        document.getElementById('question-form').onsubmit = function(e) {
-            e.preventDefault();
-            
-            const category = document.getElementById('question-category').value;
-            const editId = document.getElementById('edit-question-id').value;
-            const qId = editId || generateQuestionId(category);
-            
-            const questionData = {
-                id: qId,
-                question: document.getElementById('question-text').value,
-                example: document.getElementById('question-example').value,
-                hint: document.getElementById('question-hint').value,
-                expectedOutput: document.getElementById('question-output').value,
-                keywords: document.getElementById('question-keywords').value.split(',').map(k => k.trim()),
-                difficulty: document.getElementById('question-difficulty').value,
-                points: document.getElementById('question-difficulty').value === 'easy' ? 100 : 
-                       document.getElementById('question-difficulty').value === 'medium' ? 150 : 200,
-                order: parseInt(document.getElementById('question-order').value),
-                enabled: document.getElementById('question-enabled').checked,
-                category: category,
-                createdAt: Date.now(),
-                updatedAt: Date.now()
-            };
-
-            database.ref(`questions/${category}/${qId}`).set(questionData)
-                .then(() => {
-                    showSuccess(editId ? '문제가 수정되었습니다!' : '문제가 추가되었습니다!');
-                    closeModal();
-                })
-                .catch(error => {
-                    alert('오류: ' + error.message);
-                });
-        };
-
-        // 문제 ID 생성
-        function generateQuestionId(category) {
-            const prefix = category.substring(0, 1).toUpperCase();
-            const timestamp = Date.now().toString().slice(-6);
-            return `${prefix}${timestamp}`;
-        }
-
-        // 문제 수정
-        function editQuestion(category, qId) {
-            const q = allQuestions[category][qId];
-            
-            document.getElementById('modal-title').textContent = '문제 수정';
-            document.getElementById('edit-question-id').value = qId;
-            document.getElementById('question-category').value = category;
-            document.getElementById('question-text').value = q.question;
-            document.getElementById('question-example').value = q.example || '';
-            document.getElementById('question-hint').value = q.hint || '';
-            document.getElementById('question-output').value = q.expectedOutput;
-            document.getElementById('question-keywords').value = (q.keywords || []).join(', ');
-            document.getElementById('question-difficulty').value = q.difficulty;
-            document.getElementById('question-order').value = q.order || 1;
-            document.getElementById('question-enabled').checked = q.enabled !== false;
-            
-            document.getElementById('question-modal').classList.add('show');
-        }
-
-        // 문제 삭제
-        function deleteQuestion(category, qId) {
-            if (!confirm('정말 이 문제를 삭제하시겠습니까?')) return;
-            
-            database.ref(`questions/${category}/${qId}`).remove()
-                .then(() => {
-                    showSuccess('문제가 삭제되었습니다!');
-                })
-                .catch(error => {
-                    alert('오류: ' + error.message);
-                });
-        }
-
-        // 문제 활성화/비활성화
-        function toggleQuestion(category, qId) {
-            const q = allQuestions[category][qId];
-            const newStatus = !q.enabled;
-            
-            database.ref(`questions/${category}/${qId}/enabled`).set(newStatus)
-                .then(() => {
-                    showSuccess(newStatus ? '문제가 활성화되었습니다!' : '문제가 비활성화되었습니다!');
-                });
-        }
-
-        // 기존 문제 일괄 업로드
-        function uploadAllQuestions() {
-            if (!confirm('기존 25개 문제를 Firebase에 업로드하시겠습니까?')) return;
-            
-            let count = 0;
-            Object.keys(existingQuestions).forEach(category => {
-                existingQuestions[category].forEach((q, index) => {
-                    const qId = `Q${category.substring(0, 3).toUpperCase()}${String(index + 1).padStart(3, '0')}`;
-                    
-                    database.ref(`questions/${category}/${qId}`).set({
-                        id: qId,
-                        question: q.question,
-                        example: q.example,
-                        hint: q.hint,
-                        expectedOutput: q.expectedOutput,
-                        keywords: q.keywords,
-                        difficulty: q.difficulty,
-                        points: q.difficulty === 'easy' ? 100 : q.difficulty === 'medium' ? 150 : 200,
-                        order: index + 1,
-                        enabled: true,
-                        category: category,
-                        createdAt: Date.now()
-                    }).then(() => {
-                        count++;
-                        if (count === Object.values(existingQuestions).flat().length) {
-                            showSuccess('모든 문제가 업로드되었습니다!');
-                        }
-                    });
-                });
-            });
-        }
-
-        // CSV 업로드 모달 표시
-        function showCsvUploadModal() {
-            document.getElementById('csv-modal').classList.add('show');
-            document.getElementById('overlay').classList.add('show');
-            // 초기화
-            document.getElementById('csv-file-input').value = '';
-            document.getElementById('csv-preview').style.display = 'none';
-            document.getElementById('upload-csv-btn').disabled = true;
-            document.getElementById('csv-upload-progress').style.display = 'none';
-        }
-
-        // CSV 모달 닫기
-        function closeCsvModal() {
-            document.getElementById('csv-modal').classList.remove('show');
-            document.getElementById('overlay').classList.remove('show');
-        }
-
-        // CSV 템플릿 다운로드
-        function downloadTemplate() {
-            const csvContent = [
-                ['category', 'question', 'example', 'hint', 'expectedOutput', 'keywords', 'difficulty', 'order'],
-                ['datatypes', '변수 x에 100을 할당하고 타입을 출력하세요.', 'x = 10\\nprint(type(x))', 'type() 함수를 사용하세요.', "<class 'int'>", 'x,=,100,print,type', 'easy', '1'],
-                ['numpy', 'numpy 배열 [1,2,3]의 합을 구하세요.', 'import numpy as np\\narr = np.array([10,20])\\nprint(np.sum(arr))', 'np.sum() 함수를 사용하세요.', '6', 'import,numpy,np,array,sum,print', 'medium', '1'],
-                ['pandas', 'pandas Series [10,20,30]을 생성하세요.', 'import pandas as pd\\ns = pd.Series([1,2,3])\\nprint(s)', 'pd.Series()를 사용하세요.', '0    10\\n1    20\\n2    30', 'import,pandas,pd,Series,print', 'medium', '1']
-            ];
-            
-            const csv = csvContent.map(row => 
-                row.map(cell => `"${cell}"`).join(',')
-            ).join('\n');
-            
-            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'question_template.csv';
-            link.click();
-            
-            showSuccess('템플릿이 다운로드되었습니다! 엑셀로 열어서 편집하세요.');
-        }
-
-        // CSV 파일 선택 시
-        document.addEventListener('DOMContentLoaded', function() {
-            const fileInput = document.getElementById('csv-file-input');
-            if (fileInput) {
-                fileInput.addEventListener('change', function(e) {
-                    const file = e.target.files[0];
-                    if (file) {
-                        previewCsv(file);
-                    }
-                });
-            }
-        });
-
-        // CSV 미리보기
-        function previewCsv(file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
-                const lines = text.split('\n').filter(line => line.trim());
-                
-                if (lines.length < 2) {
-                    showError('CSV 파일이 비어있거나 형식이 올바르지 않습니다.');
-                    return;
-                }
-                
-                // 헤더 확인
-                const headers = parseCSVLine(lines[0]);
-                const requiredHeaders = ['category', 'question', 'example', 'hint', 'expectedOutput', 'keywords', 'difficulty', 'order'];
-                const hasAllHeaders = requiredHeaders.every(h => headers.includes(h));
-                
-                if (!hasAllHeaders) {
-                    showError('CSV 헤더가 올바르지 않습니다. 템플릿을 다운로드하여 확인하세요.');
-                    return;
-                }
-                
-                // 미리보기 표시
-                let preview = `<strong>총 ${lines.length - 1}개 문제</strong><br><br>`;
-                preview += '<table style="width: 100%; border-collapse: collapse;">';
-                preview += '<tr style="background: #667eea; color: white;">';
-                headers.forEach(h => {
-                    preview += `<th style="padding: 8px; text-align: left; border: 1px solid #ddd;">${h}</th>`;
-                });
-                preview += '</tr>';
-                
-                // 처음 5개만 미리보기
-                for (let i = 1; i < Math.min(6, lines.length); i++) {
-                    const cells = parseCSVLine(lines[i]);
-                    preview += '<tr>';
-                    cells.forEach(cell => {
-                        const displayText = cell.length > 30 ? cell.substring(0, 30) + '...' : cell;
-                        preview += `<td style="padding: 8px; border: 1px solid #ddd;">${displayText}</td>`;
-                    });
-                    preview += '</tr>';
-                }
-                
-                if (lines.length > 6) {
-                    preview += `<tr><td colspan="${headers.length}" style="padding: 8px; text-align: center; color: #666;">... 외 ${lines.length - 6}개 문제</td></tr>`;
-                }
-                
-                preview += '</table>';
-                
-                document.getElementById('csv-preview-content').innerHTML = preview;
-                document.getElementById('csv-preview').style.display = 'block';
-                document.getElementById('upload-csv-btn').disabled = false;
-            };
-            
-            reader.readAsText(file, 'UTF-8');
-        }
-
-        // CSV 라인 파싱 (큰따옴표 처리)
-        function parseCSVLine(line) {
-            const result = [];
-            let current = '';
-            let inQuotes = false;
-            
-            for (let i = 0; i < line.length; i++) {
-                const char = line[i];
-                
-                if (char === '"') {
-                    if (inQuotes && line[i + 1] === '"') {
-                        current += '"';
-                        i++;
-                    } else {
-                        inQuotes = !inQuotes;
-                    }
-                } else if (char === ',' && !inQuotes) {
-                    result.push(current.trim());
-                    current = '';
-                } else {
-                    current += char;
-                }
-            }
-            
-            result.push(current.trim());
-            return result;
-        }
-
-        // CSV 업로드 처리
-        function processCsvUpload() {
-            const fileInput = document.getElementById('csv-file-input');
-            const file = fileInput.files[0];
-            
-            if (!file) {
-                showError('파일을 선택해주세요.');
+        // 일괄 삭제 확인
+        function confirmBulkDelete() {
+            if (selectedQuestions.size === 0) {
+                showError('삭제할 문제를 선택해주세요.');
                 return;
             }
             
-            document.getElementById('csv-upload-progress').style.display = 'block';
-            document.getElementById('upload-csv-btn').disabled = true;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
-                const lines = text.split('\n').filter(line => line.trim());
-                
-                const headers = parseCSVLine(lines[0]);
-                const categoryIndex = headers.indexOf('category');
-                const questionIndex = headers.indexOf('question');
-                const exampleIndex = headers.indexOf('example');
-                const hintIndex = headers.indexOf('hint');
-                const expectedOutputIndex = headers.indexOf('expectedOutput');
-                const keywordsIndex = headers.indexOf('keywords');
-                const difficultyIndex = headers.indexOf('difficulty');
-                const orderIndex = headers.indexOf('order');
-                
-                const questions = [];
-                
-                for (let i = 1; i < lines.length; i++) {
-                    const cells = parseCSVLine(lines[i]);
-                    
-                    if (cells.length < 8) continue;
-                    
-                    questions.push({
-                        category: cells[categoryIndex],
-                        question: cells[questionIndex],
-                        example: cells[exampleIndex].replace(/\\n/g, '\n'),
-                        hint: cells[hintIndex],
-                        expectedOutput: cells[expectedOutputIndex],
-                        keywords: cells[keywordsIndex].split(',').map(k => k.trim()),
-                        difficulty: cells[difficultyIndex],
-                        order: parseInt(cells[orderIndex]) || i
-                    });
-                }
-                
-                uploadQuestionsToFirebase(questions);
-            };
-            
-            reader.readAsText(file, 'UTF-8');
+            document.getElementById('confirm-message').innerHTML = 
+                `선택한 <strong>${selectedQuestions.size}개</strong> 문제를 삭제하시겠습니까?<br>이 작업은 되돌릴 수 없습니다!`;
+            document.getElementById('confirm-dialog').classList.add('show');
         }
 
-        // Firebase에 문제 업로드
-        function uploadQuestionsToFirebase(questions) {
-            let uploaded = 0;
-            const total = questions.length;
+        // 단일 문제 삭제 확인
+        function confirmSingleDelete(category, qId) {
+            selectedQuestions.clear();
+            selectedQuestions.add(qId);
             
-            const categoryCount = {};
+            const question = allQuestions.find(q => q.qId === qId);
+            document.getElementById('confirm-message').innerHTML = 
+                `<strong>${question.id || qId}</strong> 문제를 삭제하시겠습니까?<br>이 작업은 되돌릴 수 없습니다!`;
+            document.getElementById('confirm-dialog').classList.add('show');
+        }
+
+        // 일괄 삭제 실행
+        function executeBulkDelete() {
+            const deletePromises = [];
             
-            questions.forEach((q, index) => {
-                if (!categoryCount[q.category]) {
-                    categoryCount[q.category] = 0;
+            selectedQuestions.forEach(qId => {
+                const question = allQuestions.find(q => q.qId === qId);
+                if (question) {
+                    deletePromises.push(
+                        database.ref(`questions/${question.category}/${qId}`).remove()
+                    );
                 }
-                categoryCount[q.category]++;
-                
-                const qId = `Q${q.category.substring(0, 3).toUpperCase()}${String(categoryCount[q.category]).padStart(3, '0')}`;
-                
-                const questionData = {
-                    id: qId,
-                    question: q.question,
-                    example: q.example,
-                    hint: q.hint,
-                    expectedOutput: q.expectedOutput,
-                    keywords: q.keywords,
-                    difficulty: q.difficulty,
-                    points: q.difficulty === 'easy' ? 100 : q.difficulty === 'medium' ? 150 : 200,
-                    order: q.order,
-                    enabled: true,
-                    category: q.category,
-                    createdAt: Date.now()
-                };
-                
-                database.ref(`questions/${q.category}/${qId}`).set(questionData)
-                    .then(() => {
-                        uploaded++;
-                        const progress = Math.round((uploaded / total) * 100);
-                        document.getElementById('csv-progress-bar').style.width = progress + '%';
-                        document.getElementById('csv-progress-text').textContent = 
-                            `업로드 중... ${uploaded} / ${total} (${progress}%)`;
-                        
-                        if (uploaded === total) {
-                            setTimeout(() => {
-                                showSuccess(`${total}개 문제가 성공적으로 업로드되었습니다!`);
-                                closeCsvModal();
-                                loadAllQuestions();
-                            }, 500);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('업로드 오류:', error);
-                        showError('업로드 중 오류가 발생했습니다: ' + error.message);
-                    });
             });
+            
+            Promise.all(deletePromises)
+                .then(() => {
+                    const count = selectedQuestions.size;
+                    selectedQuestions.clear();
+                    closeConfirmDialog();
+                    showSuccess(`${count}개 문제가 삭제되었습니다.`);
+                    loadAllQuestions();
+                })
+                .catch(error => {
+                    console.error('삭제 오류:', error);
+                    showError('삭제 중 오류가 발생했습니다.');
+                    closeConfirmDialog();
+                });
+        }
+
+        // 확인 다이얼로그 닫기
+        function closeConfirmDialog() {
+            document.getElementById('confirm-dialog').classList.remove('show');
+        }
+
+        // 문제 상태 토글
+        function toggleQuestionStatus(category, qId) {
+            const question = allQuestions.find(q => q.qId === qId);
+            const newStatus = !(question.enabled === false);
+            
+            database.ref(`questions/${category}/${qId}/enabled`).set(newStatus)
+                .then(() => {
+                    showSuccess(newStatus ? '문제가 활성화되었습니다.' : '문제가 비활성화되었습니다.');
+                    loadAllQuestions();
+                })
+                .catch(error => {
+                    console.error('상태 변경 오류:', error);
+                    showError('상태 변경 중 오류가 발생했습니다.');
+                });
+        }
+
+        // CSV 모달 열기
+        function openCsvModal() {
+            showError('CSV 업로드 기능은 원본 question-admin-csv.html 파일을 사용해주세요.');
+        }
+
+        // 문제 추가 모달 열기
+        function openAddModal() {
+            showError('문제 추가 기능은 원본 question-admin-csv.html 파일을 사용해주세요.');
+        }
+
+        // 난이도 텍스트
+        function getDifficultyText(difficulty) {
+            const map = {
+                'easy': '쉬움',
+                'medium': '보통',
+                'hard': '어려움'
+            };
+            return map[difficulty] || difficulty;
+        }
+
+        // HTML 이스케이프
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         // 성공 메시지
         function showSuccess(message) {
             const el = document.getElementById('success-message');
+            el.textContent = message;
+            el.classList.add('show');
+            setTimeout(() => {
+                el.classList.remove('show');
+            }, 3000);
+        }
+
+        // 오류 메시지
+        function showError(message) {
+            const el = document.getElementById('error-message');
             el.textContent = message;
             el.classList.add('show');
             setTimeout(() => {
