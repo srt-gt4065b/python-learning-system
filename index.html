@@ -1013,13 +1013,15 @@
                 updateStats();
                 saveProgressToFirebase();
 
-                setTimeout(() => {
-                    nextQuestion();
+                setTimeout(nextQuestion,3000);
+                
+                //setTimeout(() => {
+                    //nextQuestion();
                     // 🔓 다음 문제 로딩 후 버튼 재활성화
-                    const runBtn = document.getElementById('run-code');
-                    runBtn.disabled = false;
-                    runBtn.textContent = '▶️ 실행 및 정답 확인';
-                }, 1500);
+                    //const runBtn = document.getElementById('run-code');
+                    //runBtn.disabled = false;
+                    //runBtn.textContent = '▶️ 실행 및 정답 확인';
+                //}, 1500);
                 
             } else {
                 // 오답인 경우 즉시 재활성화
