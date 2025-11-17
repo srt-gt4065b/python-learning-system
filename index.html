@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python 인터랙티브 학습 시스템 🐍</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 로그인 모달 */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .login-overlay.hidden {
+            display: none;
+        }
+
+        .login-modal {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .login-modal h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .login-modal p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border 0.3s;
+        }
+
+        .login-form input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* 로딩 오버레이 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 헤더 */
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .user-details h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .user-details p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .dashboard-btn, .logout-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .dashboard-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .logout-btn {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .dashboard-btn:hover, .logout-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        /* 진행 상황 바 */
+        .progress-section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .progress-stats {
+            display: flex;
+            gap: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .progress-bar {
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* 메인 콘텐츠 영역 */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .panel h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 문제 패널 */
+        .question-content {
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .difficulty-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .difficulty-easy { background: #d4edda; color: #155724; }
+        .difficulty-medium { background: #fff3cd; color: #856404; }
+        .difficulty-hard { background: #f8d7da; color: #721c24; }
+
+        .example-code {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        .hint-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .hint-box.show {
+            display: block;
+        }
+
+        /* 코드 에디터 */
+        #code-input {
+            width: 100%;
+            min-height: 300px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            resize: vertical;
+        }
+
+        /* 버튼 스타일 */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .secondary-btn {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .success-btn {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .danger-btn {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 출력 패널 */
+        .output-section {
+            margin-top: 20px;
+        }
+
+        .output-box {
+            background: #1e1e1e;
+            color: #4ec9b0;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            min-height: 100px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        .error {
+            color: #f48771;
+        }
+
+        .success {
+            color: #4ec9b0;
+        }
+
+        /* 피드백 박스 */
+        .feedback-box {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+            animation: slideIn 0.3s;
+        }
+
+        .feedback-box.show {
+            display: block;
+        }
+
+        .feedback-box.success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+
+        .feedback-box.error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .progress-stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .header-top {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .header-buttons {
+                width: 100%;
+            }
+
+            .dashboard-btn, .logout-btn {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 로그인 모달 -->
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-modal">
+            <h2>🐍 Python 학습 시작!</h2>
+            <p>학습을 시작하려면 정보를 입력해주세요</p>
+            <form id="login-form" class="login-form" onsubmit="handleLogin(event)">
+                <input type="text" id="student-name" placeholder="이름을 입력하세요" required>
+                <input type="text" id="student-id" placeholder="학번을 입력하세요" required>
+                <button type="submit" class="login-btn">학습 시작하기 🚀</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 로딩 오버레이 -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h2>Python 환경을 준비하고 있습니다...</h2>
+            <p>잠시만 기다려주세요 ⏳</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 헤더 -->
+        <div class="header">
+            <div class="header-top">
+                <div class="user-info">
+                    <div class="user-avatar">👤</div>
+                    <div class="user-details">
+                        <h3 id="user-name">사용자</h3>
+                        <p id="user-id">학번: -</p>
+                    </div>
+                </div>
+                <div class="header-buttons">
+                    <button class="dashboard-btn" onclick="goToDashboard()">
+                        🏆 Class Leader Board
+                    </button>
+                    <button class="logout-btn" onclick="logout()">
+                        로그아웃
+                    </button>
+                </div>
+            </div>
+            <h1>🐍 Python 인터랙티브 학습 시스템</h1>
+            <p class="subtitle">재미있게 코딩하면서 실력을 키워보세요!</p>
+        </div>
+
+        <!-- 진행 상황 -->
+        <div class="progress-section">
+            <div class="progress-header">
+                <h3>📊 나의 학습 진행도</h3>
+                <div class="progress-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="score">0</div>
+                        <div class="stat-label">점수</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="level">1</div>
+                        <div class="stat-label">레벨</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="solved">0</div>
+                        <div class="stat-label">해결한 문제</div>
+                    </div>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 0%">0%</div>
+            </div>
+        </div>
+
+        <!-- 메인 콘텐츠 -->
+        <div class="content-grid">
+            <!-- 문제 패널 -->
+            <div class="panel">
+                <h2>📝 문제</h2>
+                <div class="question-content" id="question">
+                    문제를 불러오는 중...
+                </div>
+                
+                <h3>💡 예제 코드</h3>
+                <pre class="example-code" id="example-code">예제 코드가 여기에 표시됩니다...</pre>
+                
+                <div class="hint-box" id="hint">
+                    힌트가 여기에 표시됩니다...
+                </div>
+                
+                <button class="secondary-btn" onclick="showHint()">💡 힌트 보기</button>
+            </div>
+
+            <!-- 코드 에디터 패널 -->
+            <div class="panel">
+                <h2>⌨️ 코드 작성</h2>
+                <textarea id="code-input" placeholder="여기에 Python 코드를 작성하세요..."></textarea>
+                
+                <div class="button-group">
+                    <button class="primary-btn" onclick="runCode()">▶️ 실행</button>
+                    <button class="success-btn" onclick="checkAnswer()">✓ 정답 확인</button>
+                    <button class="secondary-btn" onclick="nextQuestion()">⏭️ 다음 문제</button>
+                    <button class="danger-btn" onclick="clearCode()">🗑️ 코드 지우기</button>
+                </div>
+
+                <div class="feedback-box" id="feedback"></div>
+            </div>
+        </div>
+
+        <!-- 출력 결과 -->
+        <div class="panel">
+            <h2>📤 실행 결과</h2>
+            <div class="output-section">
+                <h3>내 코드 출력:</h3>
+                <pre class="output-box" id="output">코드를 실행하면 여기에 결과가 표시됩니다...</pre>
+                
+                <h3>예상 출력:</h3>
+                <pre class="output-box" id="expected-output">정답 확인 시 예상 출력이 표시됩니다...</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pyodide 로드 -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+
+    <script>
+        // 전역 변수
+        let pyodide;
+        let currentUser = null;
+
+        // 게임 상태
+        const gameState = {
+            score: 0,
+            level: 1,
+            solvedProblems: 0,
+            currentQuestion: 0,
+            totalQuestions: 10
+        };
+
+        // 문제 은행
+        const problems = [
+            {
+                id: 1,
+                difficulty: 'easy',
+                question: '변수 x에 10을 저장하고, y에 20을 저장한 후, 두 수의 합을 출력하세요.',
+                example: 'x = 5\ny = 3\nprint(x + y)  # 8 출력',
+                hint: 'x = 10, y = 20으로 설정하고 print(x + y)를 사용하세요.',
+                expectedOutput: '30',
+                points: 10
+            },
+            {
+                id: 2,
+                difficulty: 'easy',
+                question: '이름을 저장하는 변수 name을 만들고, "안녕하세요, [이름]님!"을 출력하세요.',
+                example: 'name = "홍길동"\nprint("안녕하세요, " + name + "님!")',
+                hint: 'name 변수에 여러분의 이름을 넣고, print()로 인사말을 만드세요.',
+                expectedOutput: '안녕하세요',
+                points: 10
+            },
+            {
+                id: 3,
+                difficulty: 'medium',
+                question: '1부터 10까지의 숫자 중 짝수만 출력하는 프로그램을 작성하세요.',
+                example: 'for i in range(1, 6):\n    if i % 2 == 0:\n        print(i)',
+                hint: 'for 반복문과 if 조건문, % 연산자를 사용하세요.',
+                expectedOutput: '2\n4\n6\n8\n10',
+                points: 20
+            },
+            {
+                id: 4,
+                difficulty: 'medium',
+                question: '리스트 [1, 2, 3, 4, 5]의 모든 요소의 합을 계산하여 출력하세요.',
+                example: 'numbers = [1, 2, 3]\ntotal = sum(numbers)\nprint(total)',
+                hint: 'sum() 함수를 사용하거나 반복문으로 합을 계산할 수 있습니다.',
+                expectedOutput: '15',
+                points: 20
+            },
+            {
+                id: 5,
+                difficulty: 'hard',
+                question: '1부터 100까지의 숫자 중 3의 배수이면서 5의 배수인 숫자를 모두 출력하세요.',
+                example: 'for i in range(1, 31):\n    if i % 3 == 0 and i % 5 == 0:\n        print(i)',
+                hint: 'and 연산자를 사용하여 두 조건을 모두 만족하는지 확인하세요.',
+                expectedOutput: '15\n30\n45\n60\n75\n90',
+                points: 30
+            },
+            {
+                id: 6,
+                difficulty: 'easy',
+                question: '반지름이 5인 원의 넓이를 계산하여 출력하세요. (π = 3.14159)',
+                example: 'r = 3\npi = 3.14159\narea = pi * r * r\nprint(area)',
+                hint: '원의 넓이 = π × 반지름²',
+                expectedOutput: '78.53975',
+                points: 10
+            },
+            {
+                id: 7,
+                difficulty: 'medium',
+                question: '문자열 "Python"을 거꾸로 출력하세요.',
+                example: 'text = "Hello"\nprint(text[::-1])',
+                hint: '슬라이싱을 사용하세요: [::-1]',
+                expectedOutput: 'nohtyP',
+                points: 20
+            },
+            {
+                id: 8,
+                difficulty: 'hard',
+                question: '1부터 20까지의 숫자 중 소수(prime number)를 모두 출력하세요.',
+                example: '# 소수는 1과 자기 자신으로만 나누어지는 수입니다',
+                hint: '각 숫자에 대해 2부터 자기 자신-1까지 나누어 떨어지는지 확인하세요.',
+                expectedOutput: '2\n3\n5\n7\n11\n13\n17\n19',
+                points: 30
+            },
+            {
+                id: 9,
+                difficulty: 'medium',
+                question: '구구단 5단을 출력하세요. (5 x 1 = 5 형식으로)',
+                example: 'for i in range(1, 4):\n    print(f"2 x {i} = {2*i}")',
+                hint: 'for 반복문과 f-string을 사용하세요.',
+                expectedOutput: '5 x 1 = 5\n5 x 2 = 10',
+                points: 20
+            },
+            {
+                id: 10,
+                difficulty: 'hard',
+                question: '피보나치 수열의 처음 10개 항을 출력하세요. (1, 1, 2, 3, 5, 8, ...)',
+                example: 'a, b = 0, 1\nfor i in range(5):\n    print(b)\n    a, b = b, a + b',
+                hint: '두 변수를 사용하여 이전 두 수의 합을 계속 계산하세요.',
+                expectedOutput: '1\n1\n2\n3\n5\n8\n13\n21\n34\n55',
+                points: 30
+            }
+        ];
+
+        // 로그인 처리
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('student-name').value.trim();
+            const studentId = document.getElementById('student-id').value.trim();
+            
+            if (!name || !studentId) {
+                alert('이름과 학번을 모두 입력해주세요!');
+                return;
+            }
+
+            currentUser = {
+                studentName: name,
+                studentId: studentId,
+                loginTime: new Date().toISOString()
+            };
+
+            // localStorage에 사용자 정보 저장
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+            // 사용자 정보 표시
+            document.getElementById('user-name').textContent = name;
+            document.getElementById('user-id').textContent = `학번: ${studentId}`;
+
+            // 로그인 모달 숨기기
+            document.getElementById('login-overlay').classList.add('hidden');
+
+            // 로딩 화면 표시 및 Python 초기화
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            initPython();
+        }
+
+        // 로그아웃
+        function logout() {
+            if (confirm('정말 로그아웃하시겠습니까? 저장되지 않은 진행 상황은 사라집니다.')) {
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('gameState');
+                location.reload();
+            }
+        }
+
+        // Dashboard로 이동
+        function goToDashboard() {
+            // 진행 상황 저장
+            saveProgress();
+            // Dashboard 페이지로 이동
+            window.open('dashboard.html', '_blank');
+        }
+
+        // Python 초기화
+        async function initPython() {
+            try {
+                pyodide = await loadPyodide();
+                console.log('✅ Pyodide 로드 완료!');
+                
+                // 로딩 화면 숨기기
+                document.getElementById('loading-overlay').classList.add('hidden');
+                
+                // 저장된 진행 상황 로드
+                loadProgress();
+                
+                // 첫 번째 문제 로드
+                loadQuestion();
+                
+            } catch (error) {
+                console.error('❌ Pyodide 로드 실패:', error);
+                alert('Python 환경을 로드하는데 실패했습니다. 페이지를 새로고침해주세요.');
+            }
+        }
+
+        // 진행 상황 저장
+        function saveProgress() {
+            if (currentUser) {
+                const progressData = {
+                    ...gameState,
+                    studentName: currentUser.studentName,
+                    studentId: currentUser.studentId,
+                    lastUpdated: new Date().toISOString()
+                };
+                localStorage.setItem('gameState', JSON.stringify(progressData));
+                console.log('💾 진행 상황 저장됨:', progressData);
+            }
+        }
+
+        // 진행 상황 불러오기
+        function loadProgress() {
+            const saved = localStorage.getItem('gameState');
+            if (saved) {
+                const data = JSON.parse(saved);
+                gameState.score = data.score || 0;
+                gameState.level = data.level || 1;
+                gameState.solvedProblems = data.solvedProblems || 0;
+                gameState.currentQuestion = data.currentQuestion || 0;
+                updateUI();
+                console.log('📂 진행 상황 불러옴:', data);
+            }
+        }
+
+        // UI 업데이트
+        function updateUI() {
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('level').textContent = gameState.level;
+            document.getElementById('solved').textContent = gameState.solvedProblems;
+            
+            const progress = (gameState.solvedProblems / gameState.totalQuestions) * 100;
+            const progressFill = document.getElementById('progress-fill');
+            progressFill.style.width = progress + '%';
+            progressFill.textContent = Math.round(progress) + '%';
+
+            saveProgress();
+        }
+
+        // 코드 실행
+        async function runCode() {
+            const code = document.getElementById('code-input').value;
+            const output = document.getElementById('output');
+            
+            if (!code.trim()) {
+                output.textContent = '⚠️ 코드를 입력해주세요!';
+                output.style.color = '#ffc107';
+                return;
+            }
+
+            try {
+                // Python 출력 캡처
+                pyodide.runPython(`
+import sys
+from io import StringIO
+sys.stdout = StringIO()
+                `);
+
+                pyodide.runPython(code);
+
+                const result = pyodide.runPython('sys.stdout.getvalue()');
+                output.textContent = result || '(출력 없음)';
+                output.style.color = '#4ec9b0';
+                
+            } catch (error) {
+                output.textContent = '❌ 오류:\n' + error.message;
+                output.style.color = '#f48771';
+            }
+        }
+
+        // 정답 확인
+        async function checkAnswer() {
+            await runCode();
+            
+            const userOutput = document.getElementById('output').textContent.trim();
+            const currentProblem = problems[gameState.currentQuestion];
+            const expectedOutput = document.getElementById('expected-output');
+            const feedback = document.getElementById('feedback');
+            
+            expectedOutput.textContent = currentProblem.expectedOutput;
+            expectedOutput.style.color = '#4ec9b0';
+
+            // 출력 비교 (공백 제거 후)
+            const userLines = userOutput.split('\n').map(line => line.trim()).filter(line => line);
+            const expectedLines = currentProblem.expectedOutput.split('\n').map(line => line.trim()).filter(line => line);
+            
+            let isCorrect = false;
+            
+            if (currentProblem.expectedOutput.includes('안녕하세요')) {
+                // 인사말 문제는 부분 일치로 검사
+                isCorrect = userOutput.includes('안녕하세요') && userOutput.includes('님');
+            } else if (currentProblem.expectedOutput.includes('x')) {
+                // 구구단 문제는 형식 검사
+                isCorrect = userOutput.includes('x') && userOutput.includes('=');
+            } else {
+                // 일반 문제는 정확한 일치
+                isCorrect = JSON.stringify(userLines) === JSON.stringify(expectedLines);
+            }
+
+            if (isCorrect) {
+                feedback.className = 'feedback-box success show';
+                feedback.innerHTML = `
+                    <h3>🎉 정답입니다!</h3>
+                    <p>+${currentProblem.points}점을 획득했습니다!</p>
+                `;
+                
+                gameState.score += currentProblem.points;
+                gameState.solvedProblems++;
+                gameState.level = Math.floor(gameState.score / 100) + 1;
+                updateUI();
+                
+            } else {
+                feedback.className = 'feedback-box error show';
+                feedback.innerHTML = `
+                    <h3>❌ 틀렸습니다</h3>
+                    <p>예상 출력과 다릅니다. 다시 시도해보세요!</p>
+                    <p>💡 힌트를 참고하거나 예제 코드를 다시 확인해보세요.</p>
+                `;
+            }
+        }
+
+        // 문제 로드
+        function loadQuestion() {
+            if (gameState.currentQuestion >= problems.length) {
+                alert('🎉 모든 문제를 완료했습니다! 점수: ' + gameState.score);
+                gameState.currentQuestion = 0;
+            }
+
+            const q = problems[gameState.currentQuestion];
+            
+            const difficultyClass = q.difficulty === 'easy' ? 'difficulty-easy' : 
+                                   q.difficulty === 'medium' ? 'difficulty-medium' : 'difficulty-hard';
+            const difficultyText = q.difficulty === 'easy' ? '쉬움' : 
+                                  q.difficulty === 'medium' ? '보통' : '어려움';
+            
+            const difficultyBadge = `<span class="difficulty-badge ${difficultyClass}">${difficultyText}</span>`;
+            
+            document.getElementById('question').innerHTML = q.question + difficultyBadge;
+            document.getElementById('example-code').textContent = q.example;
+            document.getElementById('hint').textContent = q.hint;
+            document.getElementById('hint').classList.remove('show');
+            document.getElementById('feedback').classList.remove('show');
+            document.getElementById('output').textContent = '코드를 실행하면 여기에 결과가 표시됩니다...';
+            document.getElementById('output').style.color = '#4ec9b0';
+            document.getElementById('expected-output').textContent = '정답 확인 시 예상 출력이 표시됩니다...';
+            document.getElementById('expected-output').style.color = '#4ec9b0';
+        }
+
+        function showHint() {
+            document.getElementById('hint').classList.add('show');
+        }
+
+        function nextQuestion() {
+            gameState.currentQuestion++;
+            loadQuestion();
+        }
+
+        function clearCode() {
+            if (confirm('작성한 코드를 모두 지우시겠습니까?')) {
+                document.getElementById('code-input').value = '';
+            }
+        }
+
+        // 페이지 로드 시
+        window.onload = function() {
+            // 저장된 사용자 정보 확인
+            const savedUser = localStorage.getItem('currentUser');
+            
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                document.getElementById('user-name').textContent = currentUser.studentName;
+                document.getElementById('user-id').textContent = `학번: ${currentUser.studentId}`;
+                document.getElementById('login-overlay').classList.add('hidden');
+                document.getElementById('loading-overlay').classList.remove('hidden');
+                initPython();
+            }
+            // 저장된 정보가 없으면 로그인 모달이 자동으로 표시됨
+        };
+
+        // 페이지 종료 시 진행 상황 저장
+        window.addEventListener('beforeunload', function() {
+            saveProgress();
+        });
+
+        // 주기적으로 진행 상황 저장 (1분마다)
+        setInterval(saveProgress, 60000);
+    </script>
+</body>
+</html>
