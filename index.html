@@ -964,15 +964,7 @@
         }
 
         // 정답 확인
-        function checkAnswer(actualOutput) {
-            // 🔒 중복 실행 방지
-            const runBtn = document.getElementById('run-code');
-            runBtn.disabled = true;
-            if (runBtn.disabled) {
-                console.log('⚠️ 이미 채점 중입니다!');
-                return;
-            }
-            
+        function checkAnswer(actualOutput) {            
             const topic = gameState.currentTopic;
             const qIndex = gameState.currentQuestion;
             const q = questions[topic][qIndex];
