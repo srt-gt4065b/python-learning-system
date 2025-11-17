@@ -968,7 +968,10 @@
             // 🔒 중복 실행 방지
             const runBtn = document.getElementById('run-code');
             runBtn.disabled = true;
-            runBtn.textContent = '⏳ 채점 중...';
+            if (runBtn.disabled) {
+                console.log('⚠️ 이미 채점 중입니다!');
+                return;
+            }
             
             const topic = gameState.currentTopic;
             const qIndex = gameState.currentQuestion;
@@ -1018,7 +1021,6 @@
                     runBtn.textContent = '▶️ 실행 및 정답 확인';
                 }, 1500);
                 
-                #setTimeout(nextQuestion, 3000);
             } else {
                 // 오답인 경우 즉시 재활성화
                 setTimeout(() => {
