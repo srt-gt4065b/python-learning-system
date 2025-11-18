@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Python 인터랙티브 학습 시스템 🐍 (실행 검증)</title>
+    <title>🐍 Python 인터랙티브 학습 시스템 🐍</title>
     <style>
         * {
             margin: 0;
@@ -766,6 +766,35 @@
                 
                 // 기본 패키지 로드
                 await pyodide.loadPackage(['numpy', 'pandas']);
+                
+                // ✅ 샘플 CSV 파일 생성 (파일 불러오기 문제용)
+                console.log('📁 샘플 데이터 파일 생성 중...');
+                
+                pyodide.FS.writeFile('/file.csv', `name,age,city,salary
+Alice,25,Seoul,3000000
+Bob,30,Busan,4000000
+Charlie,35,Incheon,5000000
+David,28,Daegu,3500000
+Eve,32,Gwangju,4500000
+Frank,27,Seoul,3200000
+Grace,29,Busan,3800000
+Henry,31,Incheon,4200000`);
+                
+                pyodide.FS.writeFile('/sales.csv', `product,quantity,price,date
+Laptop,5,1200000,2024-01-01
+Mouse,20,25000,2024-01-02
+Keyboard,15,80000,2024-01-03
+Monitor,8,350000,2024-01-04
+Laptop,3,1200000,2024-01-05`);
+                
+                pyodide.FS.writeFile('/students.csv', `student_id,name,math,english,science
+1,김철수,85,90,88
+2,이영희,92,88,95
+3,박민수,78,85,80
+4,최지은,95,92,97
+5,정하늘,88,86,90`);
+                
+                console.log('✅ 샘플 파일 생성 완료: file.csv, sales.csv, students.csv');
                 
                 pythonReady = true;
                 console.log('✅ Python 실행 환경 준비 완료!');
