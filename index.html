@@ -996,90 +996,6 @@ Laptop,3,1200000,2024-01-05`);
             }
         }
 
-        // DataFrame 출력 비교 함수 (데이터 불러오기 문제용)
-        function compareDataFrameOutput(actualOutput, expectedOutput) {
-            try {
-                // 1단계: 정확히 일치하는 경우 (가장 빠름)
-                if (actualOutput === expectedOutput) {
-                    console.log('✅ 출력 완전 일치');
-                    return true;
-                }
-                
-                // 2단계: 공백 정규화 후 비교
-                const normalizedActual = actualOutput.replace(/\s+/g, ' ').trim();
-                const normalizedExpected = expectedOutput.replace(/\s+/g, ' ').trim();
-                
-                if (normalizedActual === normalizedExpected) {
-                    console.log('✅ 공백 정규화 후 일치');
-                    return true;
-                }
-                
-                // 3단계: 데이터 내용만 추출하여 비교 (핵심!)
-                const actualData = extractDataFromOutput(actualOutput);
-                const expectedData = extractDataFromOutput(expectedOutput);
-                
-                if (actualData === expectedData) {
-                    console.log('✅ 데이터 내용 일치 (형식 무시)');
-                    return true;
-                }
-                
-                // 4단계: 숫자와 텍스트만 추출하여 비교 (가장 관대)
-                const actualValues = extractValuesOnly(actualOutput);
-                const expectedValues = extractValuesOnly(expectedOutput);
-                
-                if (actualValues === expectedValues) {
-                    console.log('✅ 값만 비교하여 일치');
-                    return true;
-                }
-                
-                console.log('❌ 불일치 - 실제:', actualValues.substring(0, 100));
-                console.log('❌ 불일치 - 예상:', expectedValues.substring(0, 100));
-                return false;
-                
-            } catch (error) {
-                console.error('DataFrame 비교 중 오류:', error);
-                // 오류 발생 시 기존 방식으로 fallback
-                return actualOutput.replace(/\s+/g, ' ').trim() === expectedOutput.replace(/\s+/g, ' ').trim();
-            }
-        }
-        
-        // 출력에서 데이터 부분만 추출 (헤더 + 인덱스 제거)
-        function extractDataFromOutput(output) {
-            // 줄 단위로 분리
-            const lines = output.trim().split('\n');
-            
-            // 각 줄에서 숫자와 주요 텍스트만 추출
-            const dataLines = [];
-            
-            for (let line of lines) {
-                // 빈 줄 제거
-                if (!line.trim()) continue;
-                
-                // 인덱스 번호와 데이터 분리 (숫자로 시작하는 경우)
-                const match = line.match(/^\s*\d+\s+(.+)$/);
-                if (match) {
-                    // 인덱스 제거하고 데이터만
-                    dataLines.push(match[1].replace(/\s+/g, ' ').trim());
-                } else {
-                    // 헤더 줄이거나 인덱스 없는 줄
-                    dataLines.push(line.replace(/\s+/g, ' ').trim());
-                }
-            }
-            
-            return dataLines.join('|');
-        }
-        
-        // 값만 추출 (숫자, 문자, 특수문자 제외)
-        function extractValuesOnly(output) {
-            // 모든 공백, 특수 기호 제거하고 핵심 데이터만
-            return output
-                .replace(/\s+/g, '')           // 모든 공백 제거
-                .replace(/[|_\-=]/g, '')       // 구분선 제거
-                .replace(/dtype.*$/gm, '')     // dtype 정보 제거
-                .replace(/Name:.*$/gm, '')     // Name 정보 제거
-                .toLowerCase();
-        }
-
         // 정답 확인
         function checkAnswer(actualOutput) {            
             const topic = gameState.currentTopic;
@@ -1095,23 +1011,15 @@ Laptop,3,1200000,2024-01-05`);
             const feedback = document.getElementById('feedback');
             const expectedOutputDiv = document.getElementById('expected-output');
             
-            // ✅ 데이터 불러오기 문제를 위한 특별 처리
-            let isCorrect = false;
+            // 출력 비교 (공백 정규화)
+            const normalizedActual = actualOutput.replace(/\s+/g, ' ').trim();
+            const normalizedExpected = expectedOutput.replace(/\s+/g, ' ').trim();
             
-            if (topic === 'data_loading' || q.keywords.includes('read_csv') || q.keywords.includes('DataFrame')) {
-                console.log('📊 데이터 불러오기 문제 - DataFrame 비교 모드');
-                isCorrect = compareDataFrameOutput(actualOutput, expectedOutput);
-            } else {
-                // 기존 출력 비교 (공백 정규화)
-                const normalizedActual = actualOutput.replace(/\s+/g, ' ').trim();
-                const normalizedExpected = expectedOutput.replace(/\s+/g, ' ').trim();
-                
-                // 정답 판정
-                isCorrect = normalizedActual === normalizedExpected || 
-                            actualOutput === expectedOutput ||
-                            // 부분 일치도 허용 (난수 등)
-                            (q.difficulty === 'medium' && normalizedActual.includes(normalizedExpected.substring(0, 10)));
-            }
+            // 정답 판정
+            const isCorrect = normalizedActual === normalizedExpected || 
+                              actualOutput === expectedOutput ||
+                              // 부분 일치도 허용 (난수 등)
+                              (q.difficulty === 'medium' && normalizedActual.includes(normalizedExpected.substring(0, 10)));
             
             if (isCorrect) {
                 gameState.score += points;
