@@ -794,7 +794,11 @@ Laptop,3,1200000,2024-01-05`);
 4,최지은,95,92,97
 5,정하늘,88,86,90`);
                 
+                // 작업 디렉토리를 루트로 변경
+                pyodide.FS.chdir('/');
+                
                 console.log('✅ 샘플 파일 생성 완료: file.csv, sales.csv, students.csv');
+                console.log('📂 현재 작업 디렉토리:', pyodide.FS.cwd());
                 
                 pythonReady = true;
                 console.log('✅ Python 실행 환경 준비 완료!');
@@ -1156,3 +1160,4 @@ Laptop,3,1200000,2024-01-05`);
     </script>
 </body>
 </html>
+
