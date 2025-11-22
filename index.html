@@ -1039,7 +1039,8 @@ Laptop,3,1200000,2024-01-05`);
                 updateStats();
                 saveProgressToFirebase();
 
-                setTimeout(nextQuestion,3000);
+                // ⬇ 3초 기다리지 않고 즉시 다음 문제
+                nextQuestion();
                                 
             } else {
                                 
