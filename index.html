@@ -991,7 +991,7 @@ Laptop,3,1200000,2024-01-05`);
                 feedback.textContent = '❌ 코드 실행 중 오류가 발생했습니다. 문법을 확인해주세요!';
                 feedback.className = 'feedback error show';
             } finally {
-                runBtn.disabled = false;
+                //runBtn.disabled = false;
                 runBtn.textContent = '▶️ 실행 및 정답 확인';
             }
         }
@@ -1042,8 +1042,7 @@ Laptop,3,1200000,2024-01-05`);
                 setTimeout(nextQuestion,3000);
                                 
             } else {
-                // 오답인 경우 즉시 재활성화
-                
+                                
                 gameState.streak = 0;
                 
                 feedback.textContent = `❌ 출력 결과가 다릅니다!\n\n실제 출력과 예상 출력을 비교해보세요.`;
@@ -1052,6 +1051,10 @@ Laptop,3,1200000,2024-01-05`);
                 expectedOutputDiv.style.color = '#ff6b6b';
                 
                 updateStats();
+                
+                // 오답인 경우 즉시 재활성화
+                document.getElementById('run-btn').disabled = false;
+
             }
         }
 
