@@ -587,7 +587,7 @@
     </style>
 </head>
     <!-- 점수 팝업 애니메이션 -->
-<div id="score-popup" class="score-popup">+100점</div>
+
 <body>
     <!-- 로그인 모달 -->
     <div class="login-overlay" id="login-overlay">
@@ -706,7 +706,16 @@
 
     <!-- Pyodide 로드 -->
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js">
-        function showScorePopup(points) {
+    </script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        // 사용자 정보
+        let currentUser = null;
+function showScorePopup(points) {
     const popup = document.getElementById('score-popup');
     popup.textContent = `+${points}점`;
     
@@ -718,15 +727,6 @@
     popup.classList.add('show');
 }
 
-    </script>
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
-    <script>
-        // 사용자 정보
-        let currentUser = null;
 
         // 로그인 처리
         function handleLogin(event) {
@@ -1219,5 +1219,6 @@ Laptop,3,1200000,2024-01-05`);
         // 주기적으로 진행 상황 저장 (1분마다)
         setInterval(saveProgressToFirebase, 60000);
     </script>
+    <div id="score-popup" class="score-popup">+100점</div>
 </body>
 </html>
