@@ -5,6 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🐍 Python 인터랙티브 학습 시스템 🐍</title>
     <style>
+        .score-popup {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.95);
+    padding: 15px 25px;
+    border-radius: 30px;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #4ec9b0;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 99999;
+}
+
+.score-popup.show {
+    animation: popupFloat 2s ease-out forwards;
+}
+
+/* 풍선처럼 위로 떠오르는 효과 */
+@keyframes popupFloat {
+    0% {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+    70% {
+        transform: translate(-50%, -80px);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -120px);
+        opacity: 0;
+    }
+}
+
         * {
             margin: 0;
             padding: 0;
@@ -549,6 +586,8 @@
         }
     </style>
 </head>
+    <!-- 점수 팝업 애니메이션 -->
+<div id="score-popup" class="score-popup">+100점</div>
 <body>
     <!-- 로그인 모달 -->
     <div class="login-overlay" id="login-overlay">
@@ -666,7 +705,20 @@
     </div>
 
     <!-- Pyodide 로드 -->
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js">
+        function showScorePopup(points) {
+    const popup = document.getElementById('score-popup');
+    popup.textContent = `+${points}점`;
+    
+    // 애니메이션 초기화
+    popup.classList.remove('show');
+    void popup.offsetWidth; // 강제 리플로우(애니메이션 재시작 위해 필요)
+    
+    // 애니메이션 시작
+    popup.classList.add('show');
+}
+
+    </script>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -1032,6 +1084,7 @@ Laptop,3,1200000,2024-01-05`);
                 }
                 
                 feedback.textContent = `✅ 정답입니다! +${points}점 (연속 ${gameState.streak}문제)`;
+                showScorePopup(points);
                 feedback.className = 'feedback success show';
                 expectedOutputDiv.textContent = `예상 출력:\n${expectedOutput}`;
                 expectedOutputDiv.style.color = '#4ec9b0';
