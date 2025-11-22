@@ -997,7 +997,8 @@ Laptop,3,1200000,2024-01-05`);
         }
 
         // 정답 확인
-        function checkAnswer(actualOutput) {            
+        function checkAnswer(actualOutput) {
+            document.getElementById('run-btn').disabled = true;
             const topic = gameState.currentTopic;
             const qIndex = gameState.currentQuestion;
             const q = questions[topic][qIndex];
@@ -1115,6 +1116,9 @@ Laptop,3,1200000,2024-01-05`);
             document.getElementById('output').style.color = '#4ec9b0';
             document.getElementById('expected-output').textContent = '정답 확인 시 예상 출력이 표시됩니다...';
             document.getElementById('expected-output').style.color = '#4ec9b0';
+
+            // ▶ 새로운 문제에서는 실행 버튼 다시 활성화
+            document.getElementById('run-btn').disabled = false;
         }
 
         // 힌트 표시
