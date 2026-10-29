@@ -49,6 +49,9 @@
 /* 주제 칩 */
 .topics { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 10px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .topics::-webkit-scrollbar { display: none; }
+.topics .chip { flex-shrink: 0; }
+/* 주제가 많아져서 넓은 화면에서는 여러 줄로 감싸 한눈에 보이게 */
+@media (min-width: 720px) { .topics { flex-wrap: wrap; overflow-x: visible; } }
 .chip .ring { width: 18px; height: 18px; border-radius: 50%; background: conic-gradient(var(--success) calc(var(--p) * 1%), var(--surface-3) 0); display: inline-block; position: relative; }
 .chip .ring::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--surface); }
 .chip.active .ring::after { background: var(--text); }

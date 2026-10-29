@@ -17,8 +17,22 @@ const database = window.firebase ? firebase.database() : null;
 
 /* 주제(카테고리) 메타데이터 — 순서/이름/아이콘 */
 const TOPICS = [
+  // 1) 파이썬 기초 문법
   { key: 'datatypes',    label: '자료형',          icon: '🔤' },
   { key: 'operations',   label: '연산',            icon: '➗' },
+  { key: 'io',           label: '출력·포맷팅',     icon: '🖨️' },
+  { key: 'strings',      label: '문자열 메서드',   icon: '🔠' },
+  { key: 'collections',  label: '리스트·딕셔너리', icon: '📚' },
+  // 2) 흐름 제어
+  { key: 'conditionals', label: '조건문',          icon: '🔀' },
+  { key: 'loops',        label: '반복문',          icon: '🔁' },
+  // 3) 코드 구조화
+  { key: 'functions',    label: '함수',            icon: '🧩' },
+  { key: 'exceptions',   label: '예외 처리',       icon: '🛡️' },
+  { key: 'modules',      label: '모듈·라이브러리', icon: '📦' },
+  { key: 'classes',      label: '클래스·객체',     icon: '🏗️' },
+  { key: 'files',        label: '파일 입출력',     icon: '💾' },
+  // 4) 데이터 분석
   { key: 'numpy',        label: 'NumPy',           icon: '🔢' },
   { key: 'pandas',       label: 'Pandas',          icon: '🐼' },
   { key: 'data_loading', label: '데이터 불러오기', icon: '📂' }
