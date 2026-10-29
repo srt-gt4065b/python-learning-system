@@ -1,789 +1,442 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>문제 관리 시스템 - 완전판 (CSV 업로드 + 일괄 삭제)</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container { max-width: 1400px; margin: 0 auto; }
-        .header {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header h1 { color: #667eea; font-size: 2.5em; }
-        .btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .btn-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
-        .btn-danger { background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%); color: white; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .panel {
-            background: white;
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
-        }
-        .panel h2 { color: #667eea; margin-bottom: 20px; font-size: 1.8em; }
-        
-        /* 일괄 선택 도구 바 */
-        .bulk-actions-bar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 15px 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-        }
-        .bulk-actions-bar .selection-info { font-size: 1.1em; font-weight: bold; }
-        .bulk-actions-bar .actions { display: flex; gap: 10px; }
-        .bulk-btn {
-            padding: 8px 20px;
-            border: 2px solid white;
-            background: transparent;
-            color: white;
-            border-radius: 8px;
-            font-size: 0.9em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .bulk-btn:hover { background: white; color: #667eea; }
-        .bulk-btn-danger { border-color: #ff4444; background: #ff4444; }
-        .bulk-btn-danger:hover { background: #cc0000; border-color: #cc0000; color: white; }
-        
-        .questions-grid { display: grid; gap: 20px; }
-        .question-card {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 15px;
-            border-left: 5px solid #667eea;
-            position: relative;
-            transition: all 0.3s;
-        }
-        .question-card.selected {
-            background: #e3f2fd;
-            border-left-color: #2196f3;
-            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
-        }
-        .question-card.disabled { opacity: 0.5; border-left-color: #999; }
-        .question-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 15px;
-        }
-        .question-header-left { display: flex; align-items: center; gap: 15px; }
-        .question-checkbox { width: 24px; height: 24px; cursor: pointer; }
-        .question-id {
-            background: #667eea;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.9em;
-            font-weight: bold;
-        }
-        .question-actions { display: flex; gap: 10px; }
-        .action-btn {
-            padding: 5px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: all 0.3s;
-        }
-        .edit-btn { background: #ffc107; color: #000; }
-        .delete-btn { background: #dc3545; color: white; }
-        .toggle-btn { background: #28a745; color: white; }
-        .question-text {
-            font-size: 1.1em;
-            color: #333;
-            margin-bottom: 10px;
-            margin-left: 39px;
-        }
-        .question-meta {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-            margin-left: 39px;
-        }
-        .meta-badge { padding: 5px 10px; border-radius: 5px; font-size: 0.9em; }
-        .difficulty-easy { background: #d4edda; color: #155724; }
-        .difficulty-medium { background: #fff3cd; color: #856404; }
-        .difficulty-hard { background: #f8d7da; color: #721c24; }
-        .stats-badge { background: #e7f3ff; color: #004085; }
-        
-        .alert {
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-weight: bold;
-            display: none;
-            animation: slideIn 0.3s;
-        }
-        .alert.show { display: block; }
-        .alert-success { background: #d4edda; color: #155724; border: 2px solid #28a745; }
-        .alert-danger { background: #f8d7da; color: #721c24; border: 2px solid #dc3545; }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .category-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .category-tab {
-            padding: 10px 20px;
-            background: #e9ecef;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-        .category-tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .category-tab:hover { transform: translateY(-2px); }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 2000;
-            overflow-y: auto;
-        }
-        .modal.show { display: flex; align-items: center; justify-content: center; }
-        .modal-content {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            max-width: 800px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        .modal-content h2 { color: #667eea; margin-bottom: 20px; }
-        .close-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            font-size: 2em;
-            cursor: pointer;
-            color: #999;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>문제 관리 · Python 학습</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 12px 0 16px; }
+    .toolbar .input { max-width: 300px; height: 40px; }
+    .toolbar .select { width: auto; height: 40px; }
+    .bulkbar {
+      position: sticky; top: 64px; z-index: 20; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 10px 14px; border-radius: 14px; margin-bottom: 12px;
+      background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(10px); border: 1px solid var(--border);
+    }
+    .bulkbar .grow { flex: 1; font-weight: 700; font-size: .9rem; }
+    .qlist { display: flex; flex-direction: column; gap: 10px; }
+    .qitem {
+      display: grid; grid-template-columns: 24px 1fr auto; gap: 12px; align-items: start;
+      padding: 14px 16px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); transition: border-color .2s, background .2s;
+    }
+    .qitem:hover { border-color: color-mix(in srgb, var(--primary) 35%, var(--border)); }
+    .qitem.sel { background: var(--primary-soft); border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); }
+    .qitem.off { opacity: .55; }
+    .qitem input[type=checkbox] { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--primary); cursor: pointer; }
+    .qitem .meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; }
+    .qitem .qid { font-family: var(--mono); font-size: .78rem; font-weight: 700; color: var(--muted); }
+    .qitem .txt { font-size: .95rem; font-weight: 600; line-height: 1.5; word-break: keep-all; }
+    .qitem .exp { margin-top: 6px; font-family: var(--mono); font-size: .78rem; color: var(--muted); white-space: pre-wrap; max-height: 3.2em; overflow: hidden; }
+    .qitem .acts { display: flex; gap: 6px; align-items: center; }
+    @media (max-width: 640px) { .qitem { grid-template-columns: 24px 1fr; } .qitem .acts { grid-column: 2; } }
+    .switch { position: relative; width: 40px; height: 24px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--surface-3); cursor: pointer; transition: background .2s; }
+    .switch span::after { content: ""; position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: var(--shadow-sm); transition: transform .2s; }
+    .switch input:checked + span { background: var(--success); }
+    .switch input:checked + span::after { transform: translateX(16px); }
+    .form-grid { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
+    .form-grid .full { grid-column: 1 / -1; }
+    @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+    .tester { border: 1px dashed var(--border); border-radius: 14px; padding: 14px; background: var(--surface-2); }
+    .console { background: var(--code-bg); color: #b9f5d8; border-radius: 10px; padding: 10px 12px; font-family: var(--mono); font-size: .82rem; white-space: pre-wrap; min-height: 44px; margin-top: 8px; max-height: 200px; overflow: auto; }
+    .console.err { color: #ffb4b6; }
+    .drop {
+      border: 2px dashed var(--border); border-radius: 16px; padding: 28px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s;
+    }
+    .drop:hover, .drop.over { border-color: var(--primary); background: var(--primary-soft); }
+    .preview { max-height: 280px; overflow: auto; margin-top: 14px; border: 1px solid var(--border); border-radius: 12px; }
+    .preview .table td { white-space: normal; max-width: 240px; font-size: .8rem; }
+    .issues { margin-top: 10px; font-size: .85rem; color: var(--warn); font-weight: 600; }
+    .stat-line { display: flex; gap: 16px; flex-wrap: wrap; font-size: .85rem; color: var(--muted); margin-top: 6px; }
+    .stat-line b { color: var(--text); }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📚 문제 관리 시스템 (완전판)</h1>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn btn-success" onclick="openCsvModal()">📂 CSV로 일괄 업로드</button>
-            </div>
-        </div>
-
-        <div id="success-message" class="alert alert-success"></div>
-        <div id="error-message" class="alert alert-danger"></div>
-
-        <div class="panel">
-            <h2>문제 목록</h2>
-
-            <div class="category-tabs">
-                <button class="category-tab active" onclick="filterByCategory('all')">전체</button>
-                <button class="category-tab" onclick="filterByCategory('datatypes')">자료형</button>
-                <button class="category-tab" onclick="filterByCategory('numpy')">Numpy</button>
-                <button class="category-tab" onclick="filterByCategory('pandas')">Pandas</button>
-                <button class="category-tab" onclick="filterByCategory('data_loading')">데이터 불러오기</button>
-                <button class="category-tab" onclick="filterByCategory('operations')">연산</button>
-            </div>
-
-            <div class="bulk-actions-bar">
-                <div class="selection-info">
-                    <span id="selected-count">0</span>개 문제 선택됨
-                </div>
-                <div class="actions">
-                    <button class="bulk-btn" onclick="selectAll()">✅ 전체 선택</button>
-                    <button class="bulk-btn" onclick="deselectAll()">❌ 선택 해제</button>
-                    <button class="bulk-btn bulk-btn-danger" onclick="confirmBulkDelete()">🗑️ 선택 삭제</button>
-                </div>
-            </div>
-
-            <div class="questions-grid" id="questions-list">
-                <p style="text-align: center; color: #666; padding: 40px;">
-                    Firebase에서 문제를 불러오는 중...
-                </p>
-            </div>
-        </div>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="question-admin.html"><span class="brand-logo"><span>🐍</span></span><span>문제 관리<small>Python 학습 시스템</small></span></a>
+      <nav class="nav-links collapsible">
+        <a href="professor-dashboard.html">📊 학생 현황</a>
+        <a href="question-admin.html" class="active">📚 문제 관리</a>
+      </nav>
+      <div class="spacer"></div>
+      <button class="icon-btn" data-theme-toggle aria-label="테마 전환"></button>
     </div>
+  </header>
 
-    <!-- CSV 업로드 모달 -->
-    <div id="csv-modal" class="modal">
-        <div class="modal-content" style="position: relative;">
-            <span class="close-btn" onclick="closeCsvModal()">&times;</span>
-            <h2>📂 CSV로 일괄 업로드</h2>
-            
-            <div style="background: #fff3cd; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-                <p style="margin-bottom: 10px;"><strong>⚠️ CSV 파일 형식:</strong></p>
-                <ol style="margin-left: 20px; line-height: 1.8;">
-                    <li><strong>category</strong> - 카테고리 (datatypes, numpy, pandas, data_loading, operations)</li>
-                    <li><strong>question</strong> - 문제 내용</li>
-                    <li><strong>example</strong> - 예제 코드</li>
-                    <li><strong>hint</strong> - 힌트</li>
-                    <li><strong>expectedOutput</strong> - 예상 출력</li>
-                    <li><strong>keywords</strong> - 키워드 (쉼표로 구분)</li>
-                    <li><strong>difficulty</strong> - 난이도 (easy, medium, hard)</li>
-                    <li><strong>order</strong> - 순서 (숫자)</li>
-                </ol>
+  <main class="wrap">
+    <section class="page-hero" style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap">
+      <div>
+        <div class="eyebrow">Question Bank</div>
+        <h1>📚 문제 관리</h1>
+        <div class="stat-line" id="stat-line"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-ghost" id="csv-open">📂 CSV 일괄 업로드</button>
+        <button class="btn btn-primary" id="add-btn">＋ 새 문제</button>
+      </div>
+    </section>
+
+    <section class="card card-pad">
+      <nav class="tabs" id="tabs"></nav>
+      <div class="toolbar">
+        <input class="input" id="search" placeholder="🔍 문제 내용·ID 검색">
+        <select class="select" id="diff-filter">
+          <option value="">모든 난이도</option><option value="easy">쉬움</option><option value="medium">보통</option><option value="hard">어려움</option>
+        </select>
+        <select class="select" id="state-filter">
+          <option value="">모든 상태</option><option value="on">활성</option><option value="off">비활성</option>
+        </select>
+      </div>
+      <div class="bulkbar">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="check-all" style="width:18px;height:18px;accent-color:var(--primary)"> 전체</label>
+        <span class="grow"><span id="sel-count">0</span>개 선택됨</span>
+        <button class="btn btn-soft btn-sm" data-bulk="on">활성화</button>
+        <button class="btn btn-soft btn-sm" data-bulk="off">비활성화</button>
+        <button class="btn btn-danger btn-sm" data-bulk="delete">🗑️ 삭제</button>
+      </div>
+      <div class="qlist" id="qlist">
+        <div class="skeleton" style="height:84px"></div><div class="skeleton" style="height:84px"></div><div class="skeleton" style="height:84px"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="common.js"></script>
+  <script>
+    let all = [];                         // [{cat, key, ...data}]
+    const selected = new Set();           // uid = cat__key
+    const view = { cat: 'all', search: '', diff: '', state: '' };
+    const uid = q => `${q.cat}__${q.key}`;
+
+    /* ---------- 데이터 ---------- */
+    database.ref('questions').on('value', snap => {
+      const data = snap.val() || {};
+      all = [];
+      for (const cat in data) for (const key in data[cat]) all.push({ ...data[cat][key], cat, key });
+      const ord = c => { const i = TOPICS.findIndex(t => t.key === c); return i < 0 ? 99 : i; };
+      all.sort((a, b) => ord(a.cat) - ord(b.cat) || a.cat.localeCompare(b.cat) || (a.order || 999) - (b.order || 999) || a.key.localeCompare(b.key));
+      [...selected].forEach(id => { if (!all.find(q => uid(q) === id)) selected.delete(id); });
+      render();
+    }, err => { $('#qlist').innerHTML = `<div class="empty">⚠️ ${escapeHtml(err.message)}</div>`; });
+
+    const cats = () => [...new Set([...TOPICS.map(t => t.key), ...all.map(q => q.cat)])];
+    const catLabel = c => (TOPIC_MAP[c] ? TOPIC_MAP[c].icon + ' ' + TOPIC_MAP[c].label : c);
+
+    function visible() {
+      return all.filter(q =>
+        (view.cat === 'all' || q.cat === view.cat) &&
+        (!view.diff || q.difficulty === view.diff) &&
+        (!view.state || (view.state === 'on' ? q.enabled !== false : q.enabled === false)) &&
+        (!view.search || `${q.id} ${q.key} ${q.question} ${q.example} ${q.hint}`.toLowerCase().includes(view.search.toLowerCase())));
+    }
+
+    function render() {
+      const on = all.filter(q => q.enabled !== false).length;
+      $('#stat-line').innerHTML = `<span>전체 <b>${all.length}</b>문제</span><span>활성 <b>${on}</b></span><span>비활성 <b>${all.length - on}</b></span>`;
+      $('#tabs').innerHTML = [`<button class="chip ${view.cat === 'all' ? 'active' : ''}" data-cat="all">전체 <span class="count">${all.length}</span></button>`,
+        ...cats().map(c => `<button class="chip ${view.cat === c ? 'active' : ''}" data-cat="${escapeHtml(c)}">${escapeHtml(catLabel(c))} <span class="count">${all.filter(q => q.cat === c).length}</span></button>`)].join('');
+      $$('#tabs .chip').forEach(b => b.onclick = () => { view.cat = b.dataset.cat; render(); });
+
+      const list = visible();
+      $('#qlist').innerHTML = list.length ? list.map(q => {
+        const d = DIFF[q.difficulty] || { label: q.difficulty || '?', cls: 'badge-neutral' };
+        const id = uid(q);
+        return `<div class="qitem ${selected.has(id) ? 'sel' : ''} ${q.enabled === false ? 'off' : ''}">
+          <input type="checkbox" data-sel="${escapeHtml(id)}" ${selected.has(id) ? 'checked' : ''} aria-label="선택">
+          <div style="min-width:0">
+            <div class="meta">
+              <span class="qid">${escapeHtml(q.id || q.key)}</span>
+              <span class="badge badge-neutral">${escapeHtml(catLabel(q.cat))}</span>
+              <span class="badge ${d.cls}">${escapeHtml(d.label)}</span>
+              <span class="badge badge-neutral">순서 ${escapeHtml(q.order ?? '-')}</span>
+              ${q.expectedOutput === '' || q.expectedOutput == null ? '<span class="badge badge-hard">⚠ 예상 출력 없음</span>' : ''}
             </div>
+            <div class="txt">${escapeHtml(q.question)}</div>
+            <div class="exp">→ ${escapeHtml(q.expectedOutput)}</div>
+          </div>
+          <div class="acts">
+            <label class="switch" title="${q.enabled === false ? '비활성' : '활성'}"><input type="checkbox" data-toggle="${escapeHtml(id)}" ${q.enabled !== false ? 'checked' : ''}><span></span></label>
+            <button class="btn btn-ghost btn-sm" data-edit="${escapeHtml(id)}">수정</button>
+            <button class="icon-btn" style="width:34px;height:34px" data-del="${escapeHtml(id)}" title="삭제">🗑️</button>
+          </div>
+        </div>`;
+      }).join('') : '<div class="empty"><div class="big">📭</div>조건에 맞는 문제가 없어요.</div>';
 
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 10px; font-weight: bold;">
-                    CSV 파일 선택:
-                </label>
-                <input type="file" id="csv-file-input" accept=".csv" style="
-                    width: 100%;
-                    padding: 10px;
-                    border: 2px dashed #667eea;
-                    border-radius: 10px;
-                    background: #f8f9fa;
-                    cursor: pointer;
-                ">
+      $$('[data-sel]').forEach(c => c.onchange = () => { c.checked ? selected.add(c.dataset.sel) : selected.delete(c.dataset.sel); render(); });
+      $$('[data-toggle]').forEach(c => c.onchange = () => setEnabled([c.dataset.toggle], c.checked));
+      $$('[data-edit]').forEach(b => b.onclick = () => openEditor(all.find(q => uid(q) === b.dataset.edit)));
+      $$('[data-del]').forEach(b => b.onclick = () => confirmDelete([b.dataset.del]));
+      $('#sel-count').textContent = selected.size;
+      $('#check-all').checked = list.length > 0 && list.every(q => selected.has(uid(q)));
+    }
+
+    /* ---------- 일괄 작업 ---------- */
+    $('#check-all').onchange = e => { visible().forEach(q => e.target.checked ? selected.add(uid(q)) : selected.delete(uid(q))); render(); };
+    $$('[data-bulk]').forEach(b => b.onclick = () => {
+      if (!selected.size) return toast('먼저 문제를 선택해 주세요.', 'error');
+      const ids = [...selected];
+      if (b.dataset.bulk === 'delete') confirmDelete(ids);
+      else setEnabled(ids, b.dataset.bulk === 'on');
+    });
+
+    function setEnabled(ids, on) {
+      const upd = {};
+      ids.forEach(id => { const [cat, key] = id.split('__'); upd[`${cat}/${key}/enabled`] = on; });
+      database.ref('questions').update(upd)
+        .then(() => toast(`${ids.length}개 문제를 ${on ? '활성화' : '비활성화'}했어요.`, 'success'))
+        .catch(e => toast('변경 실패: ' + e.message, 'error'));
+    }
+
+    function confirmDelete(ids) {
+      const ov = modal(`
+        <div class="modal-head"><h2>🗑️ ${ids.length}개 문제 삭제</h2></div>
+        <p>삭제하면 되돌릴 수 없어요. 잠시 숨기고 싶다면 <b>비활성화</b>를 권장합니다.</p>
+        <div class="modal-foot"><button class="btn btn-ghost" data-close>취소</button><button class="btn btn-danger" id="do-del">삭제</button></div>`);
+      $('#do-del', ov).onclick = () => {
+        const upd = {};
+        ids.forEach(id => { const [cat, key] = id.split('__'); upd[`${cat}/${key}`] = null; });
+        database.ref('questions').update(upd)
+          .then(() => { ids.forEach(id => selected.delete(id)); ov.remove(); toast(`${ids.length}개 문제를 삭제했어요.`, 'success'); })
+          .catch(e => toast('삭제 실패: ' + e.message, 'error'));
+      };
+    }
+
+    /* ---------- 공통 모달 ---------- */
+    function modal(html, wide = false) {
+      const ov = document.createElement('div');
+      ov.className = 'overlay';
+      ov.innerHTML = `<div class="modal ${wide ? 'wide' : ''}" role="dialog" aria-modal="true">${html}</div>`;
+      document.body.appendChild(ov);
+      ov.addEventListener('click', e => { if (e.target === ov || e.target.closest('[data-close]')) ov.remove(); });
+      const esc = e => { if (e.key === 'Escape') { ov.remove(); document.removeEventListener('keydown', esc); } };
+      document.addEventListener('keydown', esc);
+      return ov;
+    }
+
+    /* ---------- ID 생성 (기존 ID와 절대 겹치지 않음) ---------- */
+    function nextKeys(cat, count, reserved = new Set()) {
+      const prefix = 'Q' + cat.replace(/[^a-z]/gi, '').substring(0, 3).toUpperCase();
+      const used = new Set([...all.filter(q => q.cat === cat).map(q => q.key), ...reserved]);
+      let n = 0;
+      used.forEach(k => { const m = String(k).match(/(\d+)$/); if (m) n = Math.max(n, +m[1]); });
+      const out = [];
+      while (out.length < count) { n++; const k = prefix + String(n).padStart(3, '0'); if (!used.has(k)) { out.push(k); used.add(k); } }
+      return out;
+    }
+
+    /* ---------- 추가/수정 ---------- */
+    function openEditor(q) {
+      const isNew = !q;
+      q = q || { cat: view.cat !== 'all' ? view.cat : 'datatypes', difficulty: 'easy', enabled: true,
+                 order: Math.max(0, ...all.filter(x => x.cat === (view.cat !== 'all' ? view.cat : 'datatypes')).map(x => +x.order || 0)) + 1 };
+      const kw = Array.isArray(q.keywords) ? q.keywords.join(', ') : (q.keywords || '');
+      const ov = modal(`
+        <div class="modal-head"><h2>${isNew ? '＋ 새 문제' : '✏️ 문제 수정 · ' + escapeHtml(q.id || q.key)}</h2><button class="icon-btn" data-close aria-label="닫기">✕</button></div>
+        <form class="form-grid" id="qform">
+          <div class="field"><label>주제</label><select class="select" name="cat" ${isNew ? '' : 'disabled'}>${cats().map(c => `<option value="${escapeHtml(c)}" ${c === q.cat ? 'selected' : ''}>${escapeHtml(catLabel(c))}</option>`).join('')}</select></div>
+          <div class="field"><label>난이도</label><select class="select" name="difficulty">${Object.entries(DIFF).map(([k, v]) => `<option value="${k}" ${k === q.difficulty ? 'selected' : ''}>${v.label} (${v.points}점)</option>`).join('')}</select></div>
+          <div class="field full"><label>문제</label><textarea class="textarea" name="question" required>${escapeHtml(q.question || '')}</textarea></div>
+          <div class="field full"><label>예시 (학생 화면에 표시)</label><textarea class="textarea mono" name="example" style="min-height:70px">${escapeHtml(q.example || '')}</textarea></div>
+          <div class="field full"><label>힌트</label><textarea class="textarea" name="hint" style="min-height:60px">${escapeHtml(q.hint || '')}</textarea></div>
+          <div class="field full"><label>예상 출력 (채점 기준 · 공백/줄바꿈 차이는 무시)</label><textarea class="textarea mono" name="expectedOutput" style="min-height:70px">${escapeHtml(q.expectedOutput ?? '')}</textarea></div>
+          <div class="field"><label>키워드 (쉼표 구분)</label><input class="input" name="keywords" value="${escapeHtml(kw)}"></div>
+          <div class="field"><label>순서</label><input class="input" type="number" name="order" value="${escapeHtml(q.order ?? '')}"></div>
+          <div class="field full tester">
+            <label>🧪 정답 코드로 예상 출력 만들기 <span class="muted" style="font-weight:500">(저장되지 않음)</span></label>
+            <textarea class="textarea mono" id="test-code" placeholder="print('hello')" style="min-height:80px;margin-top:6px"></textarea>
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+              <button type="button" class="btn btn-soft btn-sm" id="test-run">▶ 실행</button>
+              <button type="button" class="btn btn-soft btn-sm" id="test-apply" disabled>↓ 결과를 예상 출력에 넣기</button>
+              <span class="muted" style="font-size:.8rem;align-self:center" id="test-status">학생 화면과 같은 Python 환경(Pyodide)에서 실행해요</span>
             </div>
+            <div class="console hidden" id="test-out"></div>
+          </div>
+          <label class="full" style="display:flex;gap:10px;align-items:center;font-weight:700"><span class="switch"><input type="checkbox" name="enabled" ${q.enabled !== false ? 'checked' : ''}><span></span></span> 학생에게 공개 (활성)</label>
+        </form>
+        <div class="modal-foot"><button class="btn btn-ghost" data-close>취소</button><button class="btn btn-primary" id="save-q">${isNew ? '추가하기' : '저장하기'}</button></div>`, true);
 
-            <div id="csv-preview" style="display: none; margin-bottom: 20px;">
-                <h3 style="color: #667eea; margin-bottom: 10px;">미리보기</h3>
-                <div id="csv-preview-content" style="
-                    max-height: 300px;
-                    overflow-y: auto;
-                    background: #f8f9fa;
-                    padding: 15px;
-                    border-radius: 10px;
-                    font-size: 0.9em;
-                "></div>
-            </div>
+      let lastOut = null;
+      $('#test-run', ov).onclick = async () => {
+        const code = $('#test-code', ov).value;
+        if (!code.trim()) return toast('실행할 코드를 입력해 주세요.', 'error');
+        const box = $('#test-out', ov); box.classList.remove('hidden', 'err'); box.textContent = '실행 중… (처음에는 Python 로딩에 10~20초 걸려요)';
+        $('#test-status', ov).textContent = '';
+        const r = await runPython(code);
+        if (r.ok) { lastOut = (r.output || '').replace(/\s+$/, ''); box.textContent = lastOut || '(출력 없음)'; $('#test-apply', ov).disabled = false; }
+        else { box.classList.add('err'); box.textContent = (r.output || '') + (r.error || ''); $('#test-apply', ov).disabled = true; }
+      };
+      $('#test-apply', ov).onclick = () => { if (lastOut != null) { ov.querySelector('[name=expectedOutput]').value = lastOut; toast('예상 출력에 반영했어요.', 'success'); } };
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button class="btn btn-success" onclick="processCsvUpload()" id="upload-csv-btn" disabled>
-                    📤 업로드 시작
-                </button>
-                <button class="btn btn-danger" onclick="closeCsvModal()">
-                    취소
-                </button>
-            </div>
-
-            <div id="csv-upload-progress" style="display: none; margin-top: 20px;">
-                <div style="background: #e7f3ff; padding: 15px; border-radius: 10px;">
-                    <p id="csv-progress-text" style="margin-bottom: 10px;">업로드 중...</p>
-                    <div style="background: #ddd; height: 20px; border-radius: 10px; overflow: hidden;">
-                        <div id="csv-progress-bar" style="
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            height: 100%;
-                            width: 0%;
-                            transition: width 0.3s;
-                        "></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 삭제 확인 다이얼로그 -->
-    <div id="confirm-dialog" class="modal">
-        <div class="modal-content" style="max-width: 500px; text-align: center;">
-            <h3 style="color: #dc3545; font-size: 1.8em; margin-bottom: 20px;">⚠️ 정말 삭제하시겠습니까?</h3>
-            <p id="confirm-message" style="font-size: 1.2em; margin-bottom: 30px; color: #333;"></p>
-            <div style="display: flex; gap: 15px; justify-content: center;">
-                <button class="btn btn-danger" onclick="executeBulkDelete()">삭제</button>
-                <button class="btn btn-primary" onclick="closeConfirmDialog()">취소</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
-    <script>
-        const firebaseConfig = {
-              apiKey: "AIzaSyBHOBXMqpBDsDIMONQqWZ83qxIxhU0VyG8",
-              authDomain: "python-learning-system.firebaseapp.com",
-              databaseURL: "https://python-learning-system-default-rtdb.asia-southeast1.firebasedatabase.app",
-              projectId: "python-learning-system",
-              storageBucket: "python-learning-system.firebasestorage.app",
-              messagingSenderId: "844754646343",
-              appId: "1:844754646343:web:da76658dae2e91d6468862",
-              measurementId: "G-9Q0JVVT0QB"
+      $('#save-q', ov).onclick = async () => {
+        const f = $('#qform', ov);
+        const v = n => f.querySelector(`[name=${n}]`);
+        const question = v('question').value.trim();
+        if (!question) return toast('문제 내용을 입력해 주세요.', 'error');
+        const cat = isNew ? v('cat').value : q.cat;
+        const difficulty = v('difficulty').value;
+        const data = {
+          question,
+          example: v('example').value,
+          hint: v('hint').value.trim(),
+          expectedOutput: v('expectedOutput').value.replace(/\s+$/, ''),
+          keywords: v('keywords').value.split(',').map(s => s.trim()).filter(Boolean),
+          difficulty,
+          points: DIFF[difficulty].points,
+          order: parseInt(v('order').value, 10) || 999,
+          enabled: v('enabled').checked,
+          category: cat,
+          updatedAt: Date.now()
         };
+        if (!data.expectedOutput && !confirm('예상 출력이 비어 있으면 학생이 정답 처리되기 어려워요. 그래도 저장할까요?')) return;
+        try {
+          if (isNew) {
+            const key = nextKeys(cat, 1)[0];
+            await database.ref(`questions/${cat}/${key}`).set({ ...data, id: key, createdAt: Date.now() });
+            toast(`${key} 문제를 추가했어요.`, 'success');
+          } else {
+            await database.ref(`questions/${cat}/${q.key}`).update(data);
+            toast('저장했어요.', 'success');
+          }
+          ov.remove();
+        } catch (e) { toast('저장 실패: ' + e.message, 'error'); }
+      };
+    }
+    $('#add-btn').onclick = () => openEditor(null);
 
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+    /* ---------- 테스트 실행용 Python 워커 ---------- */
+    let worker = null, wseq = 0; const wpending = new Map();
+    function ensureWorker() {
+      if (worker) return;
+      worker = new Worker('py-worker.js');
+      worker.onmessage = e => { const m = e.data; if (m.type === 'result' && wpending.has(m.id)) { const p = wpending.get(m.id); clearTimeout(p.t); wpending.delete(m.id); p.res(m); } };
+      worker.postMessage({ type: 'init' });
+    }
+    function runPython(code) {
+      ensureWorker();
+      const id = ++wseq;
+      return new Promise(res => {
+        const t = setTimeout(() => { wpending.delete(id); worker.terminate(); worker = null; res({ ok: false, error: '⏱️ 60초 안에 끝나지 않아 중단했어요.' }); }, 60000);
+        wpending.set(id, { res, t });
+        worker.postMessage({ type: 'run', id, code });
+      });
+    }
 
-        let allQuestions = [];
-        let currentCategory = 'all';
-        let selectedQuestions = new Set();
+    /* ---------- CSV 업로드 ---------- */
+    const REQUIRED = ['category', 'question', 'example', 'hint', 'expectedOutput', 'keywords', 'difficulty', 'order'];
 
-        window.onload = function() {
-            loadAllQuestions();
-            const fileInput = document.getElementById('csv-file-input');
-            if (fileInput) {
-                fileInput.addEventListener('change', function(e) {
-                    const file = e.target.files[0];
-                    if (file) previewCsv(file);
-                });
-            }
+    // 따옴표 안의 쉼표·줄바꿈까지 처리하는 CSV 파서
+    function parseCSV(text) {
+      text = text.replace(/^﻿/, '');
+      const rows = []; let row = [], cell = '', q = false;
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (q) {
+          if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; }
+          else cell += c;
+        } else if (c === '"') q = true;
+        else if (c === ',') { row.push(cell); cell = ''; }
+        else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(cell); rows.push(row); row = []; cell = ''; }
+        else cell += c;
+      }
+      if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+      return rows.filter(r => r.some(x => x.trim() !== ''));
+    }
+
+    function openCsv() {
+      const ov = modal(`
+        <div class="modal-head"><h2>📂 CSV 일괄 업로드</h2><button class="icon-btn" data-close aria-label="닫기">✕</button></div>
+        <p class="muted" style="font-size:.9rem;margin-bottom:12px">필수 열: <span class="mono">${REQUIRED.join(', ')}</span><br>
+          category: ${TOPICS.map(t => t.key).join(' / ')} · difficulty: easy / medium / hard<br>
+          새 문제는 <b>기존 문제 뒤에 추가</b>되며, 기존 ID와 겹치지 않게 자동 번호가 붙어요.</p>
+        <button class="btn btn-ghost btn-sm" id="tpl" style="margin-bottom:12px">⬇️ CSV 양식 내려받기</button>
+        <label class="drop" id="drop"><input type="file" id="csv-file" accept=".csv,text/csv" hidden>
+          <div style="font-size:2rem">📄</div><b>CSV 파일을 끌어다 놓거나 클릭해서 선택</b><div class="muted" style="font-size:.85rem">UTF-8 인코딩 권장 (엑셀: CSV UTF-8로 저장)</div></label>
+        <div id="csv-result"></div>
+        <div class="modal-foot"><button class="btn btn-ghost" data-close>취소</button><button class="btn btn-success" id="csv-go" disabled>📤 업로드</button></div>`, true);
+
+      let parsed = [];
+      $('#tpl', ov).onclick = () => {
+        const sample = 'category,question,example,hint,expectedOutput,keywords,difficulty,order\r\n' +
+          'datatypes,"변수 a에 3, b에 4를 저장하고 a*b를 출력하세요.","a = 3; b = 4; print(a*b)","곱셈 연산자는 * 입니다.",12,"변수,곱셈",easy,1\r\n' +
+          'pandas,"df의 행 개수를 출력하세요.","df = pd.DataFrame({\'x\':[1,2,3]}); print(len(df))","len() 함수를 사용합니다.",3,"len,DataFrame",medium,2\r\n';
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob(['﻿' + sample], { type: 'text/csv;charset=utf-8' }));
+        a.download = 'question_template.csv'; a.click();
+      };
+      const drop = $('#drop', ov);
+      ['dragover', 'dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+      ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+      drop.addEventListener('drop', e => e.dataTransfer.files[0] && read(e.dataTransfer.files[0]));
+      $('#csv-file', ov).onchange = e => e.target.files[0] && read(e.target.files[0]);
+
+      function read(file) {
+        const r = new FileReader();
+        r.onload = () => {
+          const rows = parseCSV(r.result);
+          const box = $('#csv-result', ov);
+          if (rows.length < 2) { box.innerHTML = '<div class="issues">⚠️ 데이터가 없는 파일이에요.</div>'; return; }
+          const head = rows[0].map(h => h.trim());
+          const miss = REQUIRED.filter(h => !head.includes(h));
+          if (miss.length) { box.innerHTML = `<div class="issues">⚠️ 필수 열이 없어요: ${escapeHtml(miss.join(', '))}</div>`; $('#csv-go', ov).disabled = true; return; }
+          const idx = Object.fromEntries(head.map((h, i) => [h, i]));
+          const issues = [];
+          parsed = rows.slice(1).map((r, i) => {
+            const g = k => (r[idx[k]] ?? '').trim();
+            const item = {
+              category: g('category'), question: g('question'), example: g('example').replace(/\\n/g, '\n'),
+              hint: g('hint'), expectedOutput: (r[idx.expectedOutput] ?? '').replace(/\\n/g, '\n').replace(/\s+$/, ''),
+              keywords: g('keywords').split(',').map(s => s.trim()).filter(Boolean),
+              difficulty: g('difficulty').toLowerCase(), order: parseInt(g('order'), 10) || (i + 1)
+            };
+            if (!/^[A-Za-z0-9_]+$/.test(item.category)) issues.push(`${i + 2}행: category 값이 올바르지 않음`);
+            if (!item.question) issues.push(`${i + 2}행: question 비어 있음`);
+            if (!DIFF[item.difficulty]) { issues.push(`${i + 2}행: difficulty "${item.difficulty}" → easy로 처리`); item.difficulty = 'easy'; }
+            if (!item.expectedOutput) issues.push(`${i + 2}행: expectedOutput 비어 있음`);
+            return item;
+          });
+          const bad = parsed.filter(p => !p.question || !/^[A-Za-z0-9_]+$/.test(p.category));
+          parsed = parsed.filter(p => !bad.includes(p));
+          box.innerHTML = `
+            <div style="margin-top:14px;font-weight:700">✅ 업로드 가능한 문제 ${parsed.length}개${bad.length ? ` · 제외 ${bad.length}개` : ''}</div>
+            ${issues.length ? `<div class="issues">${issues.slice(0, 8).map(escapeHtml).join('<br>')}${issues.length > 8 ? `<br>… 외 ${issues.length - 8}건` : ''}</div>` : ''}
+            <div class="preview table-wrap"><table class="table"><thead><tr><th>주제</th><th>난이도</th><th>문제</th><th>예상 출력</th></tr></thead><tbody>
+            ${parsed.slice(0, 20).map(p => `<tr><td>${escapeHtml(p.category)}</td><td>${escapeHtml(DIFF[p.difficulty].label)}</td><td>${escapeHtml(p.question.slice(0, 80))}</td><td class="mono">${escapeHtml(p.expectedOutput.slice(0, 40))}</td></tr>`).join('')}
+            </tbody></table></div>`;
+          $('#csv-go', ov).disabled = !parsed.length;
         };
+        r.readAsText(file, 'UTF-8');
+      }
 
-        function loadAllQuestions() {
-            database.ref('questions').once('value')
-                .then((snapshot) => {
-                    const data = snapshot.val();
-                    allQuestions = [];
-                    
-                    if (!data) {
-                        document.getElementById('questions-list').innerHTML = 
-                            '<p style="text-align: center; color: #666; padding: 40px;">등록된 문제가 없습니다.</p>';
-                        return;
-                    }
-                    
-                    for (let category in data) {
-                        for (let qId in data[category]) {
-                            allQuestions.push({
-                                ...data[category][qId],
-                                category: category,
-                                qId: qId
-                            });
-                        }
-                    }
-                    
-                    displayQuestions();
-                })
-                .catch((error) => {
-                    console.error('문제 불러오기 오류:', error);
-                    showError('문제를 불러오는 중 오류가 발생했습니다.');
-                });
+      $('#csv-go', ov).onclick = async () => {
+        const btn = $('#csv-go', ov); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 업로드 중…';
+        const reserved = {}; const upd = {}; const now = Date.now();
+        for (const p of parsed) {
+          reserved[p.category] = reserved[p.category] || new Set();
+          const key = nextKeys(p.category, 1, reserved[p.category])[0];
+          reserved[p.category].add(key);
+          upd[`${p.category}/${key}`] = { id: key, ...p, points: DIFF[p.difficulty].points, enabled: true, createdAt: now };
         }
+        try {
+          await database.ref('questions').update(upd);   // 한 번에 원자적으로 저장
+          toast(`${parsed.length}개 문제를 추가했어요.`, 'success');
+          ov.remove();
+        } catch (e) { toast('업로드 실패: ' + e.message, 'error'); btn.disabled = false; btn.textContent = '📤 업로드'; }
+      };
+    }
+    $('#csv-open').onclick = openCsv;
 
-        function displayQuestions() {
-            let questions = allQuestions;
-            
-            if (currentCategory !== 'all') {
-                questions = allQuestions.filter(q => q.category === currentCategory);
-            }
-            
-            if (questions.length === 0) {
-                document.getElementById('questions-list').innerHTML = 
-                    '<p style="text-align: center; color: #666; padding: 40px;">이 카테고리에 문제가 없습니다.</p>';
-                return;
-            }
-            
-            let html = '';
-            questions.forEach(q => {
-                const isSelected = selectedQuestions.has(q.qId);
-                const selectedClass = isSelected ? 'selected' : '';
-                const disabledClass = q.enabled === false ? 'disabled' : '';
-                
-                html += `
-                    <div class="question-card ${selectedClass} ${disabledClass}" id="card-${q.qId}">
-                        <div class="question-header">
-                            <div class="question-header-left">
-                                <input type="checkbox" 
-                                       class="question-checkbox" 
-                                       id="check-${q.qId}"
-                                       ${isSelected ? 'checked' : ''}
-                                       onchange="toggleQuestion('${q.qId}')">
-                                <span class="question-id">${q.id || q.qId}</span>
-                            </div>
-                            <div class="question-actions">
-                                <button class="action-btn toggle-btn" onclick="toggleQuestionStatus('${q.category}', '${q.qId}')">
-                                    ${q.enabled === false ? '활성화' : '비활성화'}
-                                </button>
-                                <button class="action-btn delete-btn" onclick="confirmSingleDelete('${q.category}', '${q.qId}')">삭제</button>
-                            </div>
-                        </div>
-                        <div class="question-text">${escapeHtml(q.question).substring(0, 150)}${q.question.length > 150 ? '...' : ''}</div>
-                        <div class="question-meta">
-                            <span class="meta-badge difficulty-${q.difficulty}">${getDifficultyText(q.difficulty)}</span>
-                            <span class="meta-badge stats-badge">카테고리: ${q.category}</span>
-                            <span class="meta-badge stats-badge">순서: ${q.order}</span>
-                            <span class="meta-badge stats-badge">배점: ${q.points}점</span>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            document.getElementById('questions-list').innerHTML = html;
-            updateSelectedCount();
-        }
-
-        function toggleQuestion(qId) {
-            if (selectedQuestions.has(qId)) {
-                selectedQuestions.delete(qId);
-            } else {
-                selectedQuestions.add(qId);
-            }
-            updateQuestionCardStyle(qId);
-            updateSelectedCount();
-        }
-
-        function updateQuestionCardStyle(qId) {
-            const card = document.getElementById(`card-${qId}`);
-            const checkbox = document.getElementById(`check-${qId}`);
-            
-            if (selectedQuestions.has(qId)) {
-                card.classList.add('selected');
-                checkbox.checked = true;
-            } else {
-                card.classList.remove('selected');
-                checkbox.checked = false;
-            }
-        }
-
-        function updateSelectedCount() {
-            document.getElementById('selected-count').textContent = selectedQuestions.size;
-        }
-
-        function selectAll() {
-            let questions = allQuestions;
-            if (currentCategory !== 'all') {
-                questions = allQuestions.filter(q => q.category === currentCategory);
-            }
-            
-            selectedQuestions.clear();
-            questions.forEach(q => {
-                selectedQuestions.add(q.qId);
-            });
-            
-            displayQuestions();
-        }
-
-        function deselectAll() {
-            selectedQuestions.clear();
-            displayQuestions();
-        }
-
-        function filterByCategory(category) {
-            currentCategory = category;
-            document.querySelectorAll('.category-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            displayQuestions();
-        }
-
-        function confirmBulkDelete() {
-            if (selectedQuestions.size === 0) {
-                showError('삭제할 문제를 선택해주세요.');
-                return;
-            }
-            
-            document.getElementById('confirm-message').innerHTML = 
-                `선택한 <strong>${selectedQuestions.size}개</strong> 문제를 삭제하시겠습니까?<br>이 작업은 되돌릴 수 없습니다!`;
-            document.getElementById('confirm-dialog').classList.add('show');
-        }
-
-        function confirmSingleDelete(category, qId) {
-            selectedQuestions.clear();
-            selectedQuestions.add(qId);
-            
-            const question = allQuestions.find(q => q.qId === qId);
-            document.getElementById('confirm-message').innerHTML = 
-                `<strong>${question.id || qId}</strong> 문제를 삭제하시겠습니까?<br>이 작업은 되돌릴 수 없습니다!`;
-            document.getElementById('confirm-dialog').classList.add('show');
-        }
-
-        function executeBulkDelete() {
-            const deletePromises = [];
-            
-            selectedQuestions.forEach(qId => {
-                const question = allQuestions.find(q => q.qId === qId);
-                if (question) {
-                    deletePromises.push(
-                        database.ref(`questions/${question.category}/${qId}`).remove()
-                    );
-                }
-            });
-            
-            Promise.all(deletePromises)
-                .then(() => {
-                    const count = selectedQuestions.size;
-                    selectedQuestions.clear();
-                    closeConfirmDialog();
-                    showSuccess(`${count}개 문제가 삭제되었습니다.`);
-                    loadAllQuestions();
-                })
-                .catch(error => {
-                    console.error('삭제 오류:', error);
-                    showError('삭제 중 오류가 발생했습니다.');
-                    closeConfirmDialog();
-                });
-        }
-
-        function closeConfirmDialog() {
-            document.getElementById('confirm-dialog').classList.remove('show');
-        }
-
-        function toggleQuestionStatus(category, qId) {
-            const question = allQuestions.find(q => q.qId === qId);
-            const newStatus = !(question.enabled === false);
-            
-            database.ref(`questions/${category}/${qId}/enabled`).set(newStatus)
-                .then(() => {
-                    showSuccess(newStatus ? '문제가 활성화되었습니다.' : '문제가 비활성화되었습니다.');
-                    loadAllQuestions();
-                })
-                .catch(error => {
-                    console.error('상태 변경 오류:', error);
-                    showError('상태 변경 중 오류가 발생했습니다.');
-                });
-        }
-
-        // CSV 관련 함수
-        function openCsvModal() {
-            document.getElementById('csv-modal').classList.add('show');
-        }
-
-        function closeCsvModal() {
-            document.getElementById('csv-modal').classList.remove('show');
-            document.getElementById('csv-file-input').value = '';
-            document.getElementById('csv-preview').style.display = 'none';
-            document.getElementById('upload-csv-btn').disabled = true;
-        }
-
-        function previewCsv(file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
-                const lines = text.split('\n').filter(line => line.trim());
-                
-                if (lines.length < 2) {
-                    showError('CSV 파일이 비어있거나 형식이 올바르지 않습니다.');
-                    return;
-                }
-                
-                const headers = parseCSVLine(lines[0]);
-                const requiredHeaders = ['category', 'question', 'example', 'hint', 'expectedOutput', 'keywords', 'difficulty', 'order'];
-                const hasAllHeaders = requiredHeaders.every(h => headers.includes(h));
-                
-                if (!hasAllHeaders) {
-                    showError('CSV 헤더가 올바르지 않습니다. 필수 컬럼: ' + requiredHeaders.join(', '));
-                    return;
-                }
-                
-                let preview = `<strong>총 ${lines.length - 1}개 문제</strong><br><br>`;
-                preview += '<table style="width: 100%; border-collapse: collapse;">';
-                preview += '<tr style="background: #667eea; color: white;">';
-                headers.forEach(h => {
-                    preview += `<th style="padding: 8px; text-align: left; border: 1px solid #ddd;">${h}</th>`;
-                });
-                preview += '</tr>';
-                
-                for (let i = 1; i < Math.min(6, lines.length); i++) {
-                    const cells = parseCSVLine(lines[i]);
-                    preview += '<tr>';
-                    cells.forEach(cell => {
-                        const displayText = cell.length > 30 ? cell.substring(0, 30) + '...' : cell;
-                        preview += `<td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(displayText)}</td>`;
-                    });
-                    preview += '</tr>';
-                }
-                
-                if (lines.length > 6) {
-                    preview += `<tr><td colspan="${headers.length}" style="padding: 8px; text-align: center; color: #666;">... 외 ${lines.length - 6}개 문제</td></tr>`;
-                }
-                
-                preview += '</table>';
-                
-                document.getElementById('csv-preview-content').innerHTML = preview;
-                document.getElementById('csv-preview').style.display = 'block';
-                document.getElementById('upload-csv-btn').disabled = false;
-            };
-            
-            reader.readAsText(file, 'UTF-8');
-        }
-
-        function parseCSVLine(line) {
-            const result = [];
-            let current = '';
-            let inQuotes = false;
-            
-            for (let i = 0; i < line.length; i++) {
-                const char = line[i];
-                
-                if (char === '"') {
-                    if (inQuotes && line[i + 1] === '"') {
-                        current += '"';
-                        i++;
-                    } else {
-                        inQuotes = !inQuotes;
-                    }
-                } else if (char === ',' && !inQuotes) {
-                    result.push(current.trim());
-                    current = '';
-                } else {
-                    current += char;
-                }
-            }
-            
-            result.push(current.trim());
-            return result;
-        }
-
-        function processCsvUpload() {
-            const fileInput = document.getElementById('csv-file-input');
-            const file = fileInput.files[0];
-            
-            if (!file) {
-                showError('파일을 선택해주세요.');
-                return;
-            }
-            
-            document.getElementById('csv-upload-progress').style.display = 'block';
-            document.getElementById('upload-csv-btn').disabled = true;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
-                const lines = text.split('\n').filter(line => line.trim());
-                
-                const headers = parseCSVLine(lines[0]);
-                const categoryIndex = headers.indexOf('category');
-                const questionIndex = headers.indexOf('question');
-                const exampleIndex = headers.indexOf('example');
-                const hintIndex = headers.indexOf('hint');
-                const expectedOutputIndex = headers.indexOf('expectedOutput');
-                const keywordsIndex = headers.indexOf('keywords');
-                const difficultyIndex = headers.indexOf('difficulty');
-                const orderIndex = headers.indexOf('order');
-                
-                const questions = [];
-                
-                for (let i = 1; i < lines.length; i++) {
-                    const cells = parseCSVLine(lines[i]);
-                    
-                    if (cells.length < 8) continue;
-                    
-                    questions.push({
-                        category: cells[categoryIndex],
-                        question: cells[questionIndex],
-                        example: cells[exampleIndex].replace(/\\n/g, '\n'),
-                        hint: cells[hintIndex],
-                        expectedOutput: cells[expectedOutputIndex],
-                        keywords: cells[keywordsIndex].split(',').map(k => k.trim()),
-                        difficulty: cells[difficultyIndex],
-                        order: parseInt(cells[orderIndex]) || i
-                    });
-                }
-                
-                uploadQuestionsToFirebase(questions);
-            };
-            
-            reader.readAsText(file, 'UTF-8');
-        }
-
-        function uploadQuestionsToFirebase(questions) {
-            let uploaded = 0;
-            const total = questions.length;
-            
-            const categoryCount = {};
-            
-            questions.forEach((q, index) => {
-                if (!categoryCount[q.category]) {
-                    categoryCount[q.category] = 0;
-                }
-                categoryCount[q.category]++;
-                
-                const qId = `Q${q.category.substring(0, 3).toUpperCase()}${String(categoryCount[q.category]).padStart(3, '0')}`;
-                
-                const questionData = {
-                    id: qId,
-                    question: q.question,
-                    example: q.example,
-                    hint: q.hint,
-                    expectedOutput: q.expectedOutput,
-                    keywords: q.keywords,
-                    difficulty: q.difficulty,
-                    points: q.difficulty === 'easy' ? 100 : q.difficulty === 'medium' ? 150 : 200,
-                    order: q.order,
-                    enabled: true,
-                    category: q.category,
-                    createdAt: Date.now()
-                };
-                
-                database.ref(`questions/${q.category}/${qId}`).set(questionData)
-                    .then(() => {
-                        uploaded++;
-                        const progress = Math.round((uploaded / total) * 100);
-                        document.getElementById('csv-progress-bar').style.width = progress + '%';
-                        document.getElementById('csv-progress-text').textContent = 
-                            `업로드 중... ${uploaded} / ${total} (${progress}%)`;
-                        
-                        if (uploaded === total) {
-                            setTimeout(() => {
-                                showSuccess(`${total}개 문제가 성공적으로 업로드되었습니다!`);
-                                closeCsvModal();
-                                loadAllQuestions();
-                            }, 500);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('업로드 오류:', error);
-                        showError('업로드 중 오류가 발생했습니다: ' + error.message);
-                    });
-            });
-        }
-
-        function getDifficultyText(difficulty) {
-            const map = { 'easy': '쉬움', 'medium': '보통', 'hard': '어려움' };
-            return map[difficulty] || difficulty;
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function showSuccess(message) {
-            const el = document.getElementById('success-message');
-            el.textContent = message;
-            el.classList.add('show');
-            setTimeout(() => { el.classList.remove('show'); }, 3000);
-        }
-
-        function showError(message) {
-            const el = document.getElementById('error-message');
-            el.textContent = message;
-            el.classList.add('show');
-            setTimeout(() => { el.classList.remove('show'); }, 3000);
-        }
-    </script>
+    /* ---------- 필터 ---------- */
+    $('#search').oninput = e => { view.search = e.target.value.trim(); render(); };
+    $('#diff-filter').onchange = e => { view.diff = e.target.value; render(); };
+    $('#state-filter').onchange = e => { view.state = e.target.value; render(); };
+  </script>
 </body>
 </html>
