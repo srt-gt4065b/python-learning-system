@@ -314,3 +314,24 @@ kbd {
   .kpi-sub { display: none; }
 }
 .modal.wide .modal-foot { position: sticky; bottom: -28px; margin: 22px -28px -28px; padding: 14px 28px; background: var(--surface); border-top: 1px solid var(--border); }
+
+/* ---------- 언어 선택 ---------- */
+.lang-wrap {
+  position: relative; display: inline-flex; align-items: center; gap: 4px; height: 40px; padding: 0 6px 0 10px;
+  border: 1px solid var(--border); border-radius: 12px; background: transparent; cursor: pointer; font-size: .9rem;
+}
+.lang-wrap:hover { background: var(--surface-2); }
+.lang-select { border: 0; background: transparent; font-weight: 700; font-size: .85rem; color: var(--text-2); cursor: pointer; padding: 0 2px; appearance: none; -webkit-appearance: none; }
+.lang-select:focus { outline: none; }
+.lang-select option { color: #0f172a; background: #fff; }
+@media (max-width: 480px) { .lang-wrap { padding: 0 4px 0 8px; } .lang-select { max-width: 64px; } }
+/* 중국어: 중국어 글꼴 우선 */
+:lang(zh) body, :lang(zh-CN) body { font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Noto Sans CJK SC", var(--font); }
+.orig-note { margin-top: 8px; font-size: .75rem; color: var(--muted); }
+@media (max-width: 560px) {
+  .topbar-inner { gap: 6px; }
+  .topbar .brand > span:not(.brand-logo) { display: none; }
+  .topbar .icon-btn { width: 36px; height: 36px; }
+  .lang-wrap { height: 36px; }
+  .lang-select { max-width: 62px; text-overflow: ellipsis; }
+}

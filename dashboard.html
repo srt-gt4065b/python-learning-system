@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>🏆 Class Leader Board · Python 학습</title>
+  <title>🏆 Class Leader Board · Python</title>
   <meta name="theme-color" content="#2f6fde">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
   <link rel="stylesheet" href="style.css">
@@ -29,7 +29,7 @@
     .pod.p1 .step { height: 120px; background: linear-gradient(180deg, #ffd43b, #f5a300); }
     .pod.p2 .step { height: 88px; background: linear-gradient(180deg, #cbd5e1, #8a99ad); }
     .pod.p3 .step { height: 64px; background: linear-gradient(180deg, #f0b98a, #b8692e); }
-    .pod.me .nm::after { content: " (나)"; color: var(--primary); }
+    .pod.me .nm { color: var(--primary); }
 
     /* 순위 리스트 */
     .rank-list { display: flex; flex-direction: column; }
@@ -61,29 +61,30 @@
 <body>
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="brand" href="index.html"><span class="brand-logo"><span>🐍</span></span><span>Python 학습<small>우송대 AI경영학과</small></span></a>
+      <a class="brand" href="index.html"><span class="brand-logo"><span>🐍</span></span><span><span data-i18n="brand.title"></span><small data-i18n="brand.sub"></small></span></a>
       <nav class="nav-links collapsible">
-        <a href="index.html">학습</a>
-        <a href="dashboard.html" class="active">🏆 리더보드</a>
+        <a href="index.html" data-i18n="nav.learn"></a>
+        <a href="dashboard.html" class="active" data-i18n="nav.board"></a>
       </nav>
       <div class="spacer"></div>
-      <span class="live-pill"><span class="dot live" id="live-dot"></span><span id="live-text">실시간 연결 중</span></span>
-      <button class="icon-btn" data-theme-toggle aria-label="테마 전환"></button>
+      <span class="live-pill"><span class="dot live" id="live-dot"></span><span id="live-text" data-i18n="lb.connecting"></span></span>
+      <span id="lang-slot"></span>
+      <button class="icon-btn" data-theme-toggle data-i18n-attr="aria-label:aria.theme"></button>
     </div>
   </header>
 
   <main class="wrap">
     <section class="page-hero">
       <div class="eyebrow">Class Leader Board</div>
-      <h1>🏆 우리 반 Python 랭킹</h1>
-      <p>문제를 풀면 순위가 실시간으로 바뀌어요. 상위 15명이 표시됩니다.</p>
+      <h1 data-i18n="lb.title"></h1>
+      <p data-i18n="lb.desc"></p>
     </section>
 
     <section class="kpis">
-      <div class="card kpi"><span class="kpi-label">👥 참여 학생</span><span class="kpi-value" id="k-total">–</span></div>
-      <div class="card kpi"><span class="kpi-label">⭐ 평균 점수</span><span class="kpi-value" id="k-avg">–</span></div>
-      <div class="card kpi"><span class="kpi-label">✅ 함께 푼 문제</span><span class="kpi-value" id="k-solved">–</span></div>
-      <div class="card kpi"><span class="kpi-label">🟢 오늘 학습한 학생</span><span class="kpi-value" id="k-today">–</span></div>
+      <div class="card kpi"><span class="kpi-label" data-i18n="lb.kTotal"></span><span class="kpi-value" id="k-total">–</span></div>
+      <div class="card kpi"><span class="kpi-label" data-i18n="lb.kAvg"></span><span class="kpi-value" id="k-avg">–</span></div>
+      <div class="card kpi"><span class="kpi-label" data-i18n="lb.kSolved"></span><span class="kpi-value" id="k-solved">–</span></div>
+      <div class="card kpi"><span class="kpi-label" data-i18n="lb.kToday"></span><span class="kpi-value" id="k-today">–</span></div>
     </section>
 
     <div id="me-slot"></div>
@@ -102,18 +103,24 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <script src="common.js"></script>
+  <script src="i18n.js"></script>
   <script>
     const MAX_DISPLAY = 15;
     const me = store.get('currentUser');
+    let lastData = null, online = false;
+    $('#lang-slot').outerHTML = langSelectHTML();
+    applyI18n();
+    window.addEventListener('langchange', () => { setLive(); if (lastData) render(lastData); });
+    function setLive() { $('#live-text').textContent = t(online ? 'lb.live' : 'lb.offline'); }
 
     database.ref('.info/connected').on('value', s => {
-      const on = s.val() === true;
-      $('#live-dot').className = 'dot' + (on ? ' live' : '');
-      $('#live-text').textContent = on ? '실시간' : '연결 끊김';
+      online = s.val() === true;
+      $('#live-dot').className = 'dot' + (online ? ' live' : '');
+      setLive();
     });
 
-    database.ref('students').on('value', snap => render(snap.val() || {}), err => {
-      $('#rank-list').innerHTML = `<div class="empty"><div class="big">⚠️</div>순위를 불러오지 못했어요<br><small>${escapeHtml(err.message)}</small></div>`;
+    database.ref('students').on('value', snap => { lastData = snap.val() || {}; render(lastData); }, err => {
+      $('#rank-list').innerHTML = `<div class="empty"><div class="big">⚠️</div>${escapeHtml(t('lb.loadFail'))}<br><small>${escapeHtml(err.message)}</small></div>`;
     });
 
     function render(data) {
@@ -132,7 +139,7 @@
 
       if (!n) {
         $('#podium').innerHTML = '';
-        $('#rank-list').innerHTML = `<div class="empty"><div class="big">🎓</div>아직 순위가 없어요.<br>학습 화면에서 첫 문제를 풀어 보세요!<br><br><a class="btn btn-primary" href="index.html">학습하러 가기</a></div>`;
+        $('#rank-list').innerHTML = `<div class="empty"><div class="big">🎓</div>${t('lb.empty')}<br><br><a class="btn btn-primary" href="index.html">${escapeHtml(t('lb.go'))}</a></div>`;
         $('#me-slot').innerHTML = ''; $('#list-note').innerHTML = '';
         return;
       }
@@ -147,10 +154,10 @@
       $('#me-slot').innerHTML = mine ? `
         <div class="card me-card">
           <span class="avatar">${escapeHtml(initial(mine.name))}</span>
-          <div class="grow"><div class="eyebrow">내 순위</div><b>${escapeHtml(mine.name)}</b> · ${fmt(mine.score)}점 · Lv.${mine.level}
-            ${mine.rank > 1 ? `<div class="muted" style="font-size:.82rem">한 단계 위까지 ${fmt(Math.max(0, (students.filter(s => s.score > mine.score).pop()?.score ?? mine.score) - mine.score))}점 남았어요</div>` : '<div class="muted" style="font-size:.82rem">현재 1등이에요! 👑</div>'}
+          <div class="grow"><div class="eyebrow">${escapeHtml(t('lb.myRank'))}</div><b>${escapeHtml(mine.name)}</b> · ${escapeHtml(t('lb.pts', { n: fmt(mine.score) }))} · Lv.${mine.level}
+            <div class="muted" style="font-size:.82rem">${escapeHtml(mine.rank > 1 ? t('lb.gap', { n: fmt(Math.max(0, (students.filter(s => s.score > mine.score).pop()?.score ?? mine.score) - mine.score)) }) : t('lb.first'))}</div>
           </div>
-          <div class="big">${mine.rank}<small style="font-size:.9rem;color:var(--muted)">위</small></div>
+          <div class="big">${LANG === 'en' ? '#' : ''}${mine.rank}<small style="font-size:.9rem;color:var(--muted)">${escapeHtml(t('lb.rankUnit'))}</small></div>
         </div>` : '';
 
       // 포디움
@@ -162,8 +169,8 @@
           <div class="crown">${cls[i] === 'p1' ? '👑' : cls[i] === 'p2' ? '🥈' : '🥉'}</div>
           <span class="avatar">${escapeHtml(initial(s.name))}</span>
           <div class="nm" title="${escapeHtml(s.name)}">${escapeHtml(s.name)}</div>
-          <div class="sc">${fmt(s.score)}점</div>
-          <div class="sub">Lv.${s.level} · ${s.solved}문제</div>
+          <div class="sc">${escapeHtml(t('lb.pts', { n: fmt(s.score) }))}</div>
+          <div class="sub">Lv.${s.level} · ${escapeHtml(t('lb.problems', { n: s.solved }))}</div>
           <div class="step">${s.rank}</div>
         </div>` : '<div></div>').join('')}</div>`;
 
@@ -172,14 +179,14 @@
         <div class="rank-row ${isMe(s) ? 'me' : ''}" style="animation-delay:${i * 25}ms">
           <span class="medal">${s.rank}</span>
           <div class="who"><span class="avatar">${escapeHtml(initial(s.name))}</span>
-            <div style="min-width:0"><div class="nm">${escapeHtml(s.name)}${isMe(s) ? ' <span class="badge badge-primary">나</span>' : ''}</div><div class="id">${escapeHtml(maskId(s.id))}</div></div></div>
+            <div style="min-width:0"><div class="nm">${escapeHtml(s.name)}${isMe(s) ? ` <span class="badge badge-primary">${escapeHtml(t('lb.me'))}</span>` : ''}</div><div class="id">${escapeHtml(maskId(s.id))}</div></div></div>
           <div class="stats">
-            <div class="stat hide-sm"><b>Lv.${s.level}</b><span>레벨</span></div>
-            <div class="stat hide-sm"><b>${s.solved}</b><span>해결</span></div>
-            <div class="stat score"><b>${fmt(s.score)}</b><span>점수</span></div>
+            <div class="stat hide-sm"><b>Lv.${s.level}</b><span>${escapeHtml(t('lb.level'))}</span></div>
+            <div class="stat hide-sm"><b>${s.solved}</b><span>${escapeHtml(t('lb.solved'))}</span></div>
+            <div class="stat score"><b>${fmt(s.score)}</b><span>${escapeHtml(t('lb.score'))}</span></div>
           </div>
         </div>`).join('');
-      $('#list-note').innerHTML = n > MAX_DISPLAY ? `<div class="note">상위 ${MAX_DISPLAY}명 표시 중 · 전체 ${n}명 참여</div>` : '';
+      $('#list-note').innerHTML = n > MAX_DISPLAY ? `<div class="note">${escapeHtml(t('lb.note', { max: MAX_DISPLAY, n }))}</div>` : '';
     }
   </script>
 </body>

@@ -62,8 +62,14 @@ _w('complex.csv', "name|score|city\nKim|80|Seoul\nLee|90|Busan\n")
 with gzip.open('data.csv.gz', 'wt', encoding='utf-8') as f:
     f.write(people)
 
+_UI_LANG = 'ko'
+_INPUT_MSG = {
+    'ko': "이 학습 환경에서는 input()을 사용할 수 없어요. 값을 변수에 직접 넣어 주세요.",
+    'en': "input() is not available in this learning environment. Put the value directly into a variable.",
+    'zh': "此学习环境不支持 input()。请直接把值赋给变量。",
+}
 def _no_input(prompt=''):
-    raise RuntimeError("이 학습 환경에서는 input()을 사용할 수 없어요. 값을 변수에 직접 넣어 주세요.")
+    raise RuntimeError(_INPUT_MSG.get(_UI_LANG, _INPUT_MSG['ko']))
 builtins.input = _no_input
 `;
 
@@ -84,7 +90,7 @@ async function init() {
 const ready = init();
 
 self.onmessage = async (e) => {
-  const { type, id, code } = e.data || {};
+  const { type, id, code, lang } = e.data || {};
   if (type === 'init') {
     try { await ready; self.postMessage({ type: 'ready', version: PYODIDE_VERSION }); }
     catch (err) { self.postMessage({ type: 'init-error', error: String(err && err.message || err) }); }
@@ -95,6 +101,7 @@ self.onmessage = async (e) => {
   let out = '';
   try {
     await ready;
+    pyodide.globals.set('_UI_LANG', ['ko', 'en', 'zh'].includes(lang) ? lang : 'ko');
     pyodide.setStdout({ batched: s => { out += s + '\n'; } });
     pyodide.setStderr({ batched: s => { out += s + '\n'; } });
 
@@ -104,7 +111,10 @@ self.onmessage = async (e) => {
       if (!self._excelReady) {
         await pyodide.loadPackage('micropip');
         try { await pyodide.pyimport('micropip').install('openpyxl'); }
-        catch (e) { throw new Error('엑셀 파일을 읽는 모듈(openpyxl)을 내려받지 못했어요. 인터넷 연결을 확인한 뒤 다시 실행해 주세요.'); }
+        catch (e) { throw new Error(({
+          en: 'Could not download the Excel module (openpyxl). Check your internet connection and run again.',
+          zh: '无法下载读取 Excel 的模块（openpyxl）。请检查网络连接后重新运行。'
+        })[lang] || '엑셀 파일을 읽는 모듈(openpyxl)을 내려받지 못했어요. 인터넷 연결을 확인한 뒤 다시 실행해 주세요.'); }
         await pyodide.runPythonAsync(EXCEL_PY);
         self._excelReady = true;
       }

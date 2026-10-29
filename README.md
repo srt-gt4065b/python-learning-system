@@ -17,6 +17,14 @@
 - `common.js` — Firebase 설정, 공통 함수
 - `learn.js`, `learn.css` — 학습 화면
 - `py-worker.js` — Python 실행기 (Pyodide 0.27, 별도 스레드 · 15초 시간 제한)
+- `i18n.js` — 화면 문구 다국어(한국어·English·中文), 언어 선택 메뉴
+- `questions-i18n.js` — 문제·힌트·예시의 영어/중국어 번역 (문제 ID 기준)
+- `topic-guide.js` — 주제 선택 화면의 단계(그룹)와 주제별 정의·필요성·연습 전략 (3개 언어). 새 주제를 만들면 여기에도 추가
+
+## 다국어
+- 학생 화면(학습·연습 모드·리더보드) 우측 상단 🌐 메뉴에서 언어 선택, 브라우저 언어로 자동 선택
+- 문제 번역 우선순위: Firebase 문제의 `question_en`·`hint_en`·`example_en`(zh 동일) → `questions-i18n.js` → 한국어 원문
+- 새 문제의 번역은 문제 관리 화면의 '🌐 번역' 칸이나 CSV 선택 열로 입력
 
 ## 데이터 (Firebase Realtime Database — 기존 구조 그대로)
 - `questions/{category}/{id}` — 문제

@@ -110,6 +110,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <script src="common.js"></script>
+  <script src="questions-i18n.js"></script>
   <script>
     let all = [];                         // [{cat, key, ...data}]
     const selected = new Set();           // uid = cat__key
@@ -157,6 +158,7 @@
               <span class="badge badge-neutral">${escapeHtml(catLabel(q.cat))}</span>
               <span class="badge ${d.cls}">${escapeHtml(d.label)}</span>
               <span class="badge badge-neutral">순서 ${escapeHtml(q.order ?? '-')}</span>
+              ${hasTr(q, 'en') && hasTr(q, 'zh') ? '<span class="badge badge-primary" title="영어·중국어 번역 있음">🌐 EN·中</span>' : `<span class="badge badge-medium" title="번역이 없으면 학생에게 한국어 원문이 보여요">🌐 번역 없음${hasTr(q, 'en') ? ' (中)' : hasTr(q, 'zh') ? ' (EN)' : ''}</span>`}
               ${q.expectedOutput === '' || q.expectedOutput == null ? '<span class="badge badge-hard">⚠ 예상 출력 없음</span>' : ''}
             </div>
             <div class="txt">${escapeHtml(q.question)}</div>
@@ -232,6 +234,13 @@
       return out;
     }
 
+    /* ---------- 번역 (영어·중국어) ---------- */
+    const TR_LANGS = [['en', 'English'], ['zh', '中文']];
+    const TR_FIELDS = [['question', '문제'], ['example', '예시'], ['hint', '힌트']];
+    const fileTr = (q, lang, field) => ((window.QUESTION_I18N || {})[uid(q)] || {})[lang]?.[field] || '';
+    const trValue = (q, lang, field) => (q[`${field}_${lang}`] || fileTr(q, lang, field));
+    const hasTr = (q, lang) => !!trValue(q, lang, 'question');
+
     /* ---------- 추가/수정 ---------- */
     function openEditor(q) {
       const isNew = !q;
@@ -249,6 +258,13 @@
           <div class="field full"><label>예상 출력 (채점 기준 · 공백/줄바꿈 차이는 무시)</label><textarea class="textarea mono" name="expectedOutput" style="min-height:70px">${escapeHtml(q.expectedOutput ?? '')}</textarea></div>
           <div class="field"><label>키워드 (쉼표 구분)</label><input class="input" name="keywords" value="${escapeHtml(kw)}"></div>
           <div class="field"><label>순서</label><input class="input" type="number" name="order" value="${escapeHtml(q.order ?? '')}"></div>
+          <details class="field full tester" ${isNew ? 'open' : ''}>
+            <summary style="cursor:pointer;font-weight:700">🌐 번역 (English · 中文) <span class="muted" style="font-weight:500">— 비워 두면 학생에게 한국어 원문이 보여요</span></summary>
+            <div class="muted" style="font-size:.8rem;margin:8px 0 4px">한국어 문제를 고쳤다면 번역도 함께 고쳐 주세요. 출력해야 할 한국어 문자열(예: '합격')은 그대로 두세요. 예시가 코드뿐이면 번역 칸을 비워 두면 됩니다.</div>
+            ${TR_LANGS.map(([lg, name]) => `<div style="margin-top:12px"><b>${name}</b>
+              ${TR_FIELDS.map(([f, label]) => `<div class="field" style="margin-top:6px"><label style="font-weight:600">${label} (${lg})</label>
+                <textarea class="textarea ${f === 'example' ? 'mono' : ''}" name="${f}_${lg}" style="min-height:${f === 'question' ? 70 : 52}px">${escapeHtml(isNew ? '' : trValue(q, lg, f))}</textarea></div>`).join('')}</div>`).join('')}
+          </details>
           <div class="field full tester">
             <label>🧪 정답 코드로 예상 출력 만들기 <span class="muted" style="font-weight:500">(저장되지 않음)</span></label>
             <textarea class="textarea mono" id="test-code" placeholder="print('hello')" style="min-height:80px;margin-top:6px"></textarea>
@@ -295,11 +311,17 @@
           category: cat,
           updatedAt: Date.now()
         };
+        // 번역: 번역 파일과 같으면 DB에 따로 저장하지 않음 (빈 칸은 삭제)
+        TR_LANGS.forEach(([lg]) => TR_FIELDS.forEach(([fld]) => {
+          const val = v(`${fld}_${lg}`).value.trim();
+          data[`${fld}_${lg}`] = (!val || (!isNew && val === fileTr(q, lg, fld))) ? null : val;
+        }));
         if (!data.expectedOutput && !confirm('예상 출력이 비어 있으면 학생이 정답 처리되기 어려워요. 그래도 저장할까요?')) return;
         try {
           if (isNew) {
             const key = nextKeys(cat, 1)[0];
-            await database.ref(`questions/${cat}/${key}`).set({ ...data, id: key, createdAt: Date.now() });
+            const clean = Object.fromEntries(Object.entries(data).filter(([, x]) => x !== null));
+            await database.ref(`questions/${cat}/${key}`).set({ ...clean, id: key, createdAt: Date.now() });
             toast(`${key} 문제를 추가했어요.`, 'success');
           } else {
             await database.ref(`questions/${cat}/${q.key}`).update(data);
@@ -355,6 +377,7 @@
         <div class="modal-head"><h2>📂 CSV 일괄 업로드</h2><button class="icon-btn" data-close aria-label="닫기">✕</button></div>
         <p class="muted" style="font-size:.9rem;margin-bottom:12px">필수 열: <span class="mono">${REQUIRED.join(', ')}</span><br>
           category: ${TOPICS.map(t => t.key).join(' / ')} · difficulty: easy / medium / hard<br>
+          선택 열(번역): <span class="mono">question_en, example_en, hint_en, question_zh, example_zh, hint_zh</span><br>
           새 문제는 <b>기존 문제 뒤에 추가</b>되며, 기존 ID와 겹치지 않게 자동 번호가 붙어요.</p>
         <button class="btn btn-ghost btn-sm" id="tpl" style="margin-bottom:12px">⬇️ CSV 양식 내려받기</button>
         <label class="drop" id="drop"><input type="file" id="csv-file" accept=".csv,text/csv" hidden>
@@ -396,6 +419,11 @@
               keywords: g('keywords').split(',').map(s => s.trim()).filter(Boolean),
               difficulty: g('difficulty').toLowerCase(), order: parseInt(g('order'), 10) || (i + 1)
             };
+            // 선택 열: question_en, example_en, hint_en, question_zh, example_zh, hint_zh
+            ['en', 'zh'].forEach(lg => ['question', 'example', 'hint'].forEach(f => {
+              const col = `${f}_${lg}`;
+              if (idx[col] != null && g(col)) item[col] = g(col).replace(/\\n/g, '\n');
+            }));
             if (!/^[A-Za-z0-9_]+$/.test(item.category)) issues.push(`${i + 2}행: category 값이 올바르지 않음`);
             if (!item.question) issues.push(`${i + 2}행: question 비어 있음`);
             if (!DIFF[item.difficulty]) { issues.push(`${i + 2}행: difficulty "${item.difficulty}" → easy로 처리`); item.difficulty = 'easy'; }
